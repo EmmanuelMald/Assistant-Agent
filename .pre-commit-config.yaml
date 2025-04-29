@@ -1,0 +1,19 @@
+# Code from https://github.com/astral-sh/ruff-pre-commit
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.11.0
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args: [ --fix ] # To fix the code structure
+        types_or: [python, pyi] # Avoid running linter in jupyter notebooks
+      # Run the formatter.
+      - id: ruff-format
+        types_or: [python, pyi] # Avoid running format in jupyter notebooks
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.98.1 # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    hooks:
+      - id: terraform_fmt
+                   
