@@ -1,6 +1,7 @@
 from google.cloud import storage
 from loguru import logger
 import os
+from io import BytesIO
 
 
 # Create a general storage client
@@ -149,6 +150,34 @@ def upload_file(
     logger.info(
         f"{origin_file_path.split('/')[-1]} stored in GCS as {destination_file_path}"
     )
+
+
+def upload_image_from_memory(
+    blob_name: str,
+    image: BytesIO,
+    bucket_name: str,
+) -> None:
+    """
+    Upload an image to a GCS bucket
+
+    Args:
+        blob_name: str -> Path + name of the file to be stored. ex: "my_folder/my_image.png"
+        image: BytesIO -> Image to be stored in GCS.
+        bucket_name: str -> Name of the GCS bucket. ex: "my_bucket"
+
+    Return:
+        None
+    """
+    if not bucket_exists(bucket_name):
+        raise ValueError(f"The bucket {bucket_name} does not exists")
+    if not isinstance(image, BytesIO):
+        raise TypeError("The image parameter must be a BytesIO object")
+
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.upload_from_file(image)
+
+    logger.info("Image successfully stored in GCS bucket")
 
 
 def upload_file_from_memory(
