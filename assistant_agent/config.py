@@ -9,9 +9,13 @@ class GCPConfig(BaseSettings):
     REGION: str = "northamerica-south1"
 
 
+# check models: https://ai.google.dev/gemini-api/docs/image-generation
 class LLMConfig(BaseSettings):
     SECRET_ID: str = "GEMINI-API-KEY"
     SECRET_VERSION: str = "1"
     API_KEY: SecretStr = ""
-    MODEL: str = "gemini-2.0-flash"
-    TEMPERATURE: float = 0.05
+    PROMPTING_MODEL_NAME: str = "gemini-2.0-flash"
+    PROMPTING_MODEL_TEMPERATURE: float = 0.05
+    IMAGE_GENERATION_MODEL_NAME: str = "imagen-3.0-generate-002"
+    IMAGE_GENERATION_TEMPERATURE: float = 0.8
+    DEFAULT_GENERATED_IMAGES: int = 4
