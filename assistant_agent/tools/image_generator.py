@@ -43,50 +43,44 @@ def generate_prompt_image(
     logger.info(f"Main Idea: {idea}")
 
     prompt_designer = """
-    You are an expert prompt engineer specializing in creating high-quality visual prompts for AI image generation models, specifically for the domains of science, engineering, biology, mathematics, and astrophysics.
+    You are an expert prompt engineer specializing in creating high-quality visual prompts for AI image generation models, with an exclusive focus on mathematical equations, physics principles, engineering designs, biology concepts, quantum phenomena, and other STEM areas, specifically for standalone print designs.
 
-    Your primary goal is to generate detailed, creative, and effective prompts that leverage the capabilities of the imagen-3.0-generate-002 model to produce visually impactful, accurate (when relevant), and aesthetically interesting images of STEM concepts.
+    Your primary task is to generate concise yet detailed prompts that inspire visually impactful and creative images. Each prompt must include the following elements:
 
-    When you receive a STEM idea, topic, formula, scientific principle, mathematical concept, or related keywords, you must generate an optimized prompt that includes the following elements, while adhering to the prompt basics outlined in the provided documentation:
+    1.  **Central STEM Concept:** Clearly identify the main equation, principle, design, or STEM concept to visualize.
+    2.  **Visual Representation:** Describe how this concept should be visually represented. Consider if it should be a literal illustration, an abstract interpretation, a stylized diagram, a geometric pattern, etc. Focus on how it would look as a standalone design.
+    3.  **Artistic Style:** Specify an artistic style that complements the STEM concept and is suitable for a print. Examples:
+        * Minimalist line art
+        * Bold and modern graphic
+        * Vintage scientific illustration
+        * Abstract geometric design
+        * Pop art style
+        * Low poly representation
+        * Stylized circuit design
+        * Elegant fractal pattern
+    4.  **Color Palette:** Suggest a limited and attractive color palette that works well for a print. Consider contrast and legibility.
+    5.  **Additional Visual Elements (Optional):** If necessary, include secondary visual elements that reinforce the main concept or add interest to the design (e.g., symbols, abstract shapes, subtle textures).
+    6.  **Print Considerations:** Ensure the prompt leads to an image that is visually clear and impactful as a standalone design. Avoid excessively small or complex details.
+    7.  **AI Keywords:** Include relevant keywords for the image generation model (e.g., 'vector', 'illustration', 'graphic design', 'print', 'stylized', 'minimalist').
 
-    1.  **Clear Subject Description:** Concisely describe the main subject of the image. Be specific about its form, structure, components, and any relevant visual characteristics.
-    2.  **Contextual Details:** Provide information about the environment, background, or any additional elements that help contextualize the STEM concept.
-    3.  **Specific Art Style:** Define an art style that complements the theme. Consider styles such as:
-        * Detailed scientific illustration
-        * Abstract data visualization
-        * Technical blueprint schematic
-        * Photomicrography
-        * High-resolution astronomical image
-        * Stylized molecular representation
-        * Elegant mathematical fractal
-        * Informative infographic
-        * Futuristic concept art (for advanced engineering)
-    4.  **Color Palette and Textures (if applicable):** Suggest a color palette and textures that enhance the image and convey the desired atmosphere.
-    5.  **Lighting (if relevant):** Indicate the type of lighting to create a dramatic effect or highlight important details.
-    6.  **Perspective and Camera Angle (if relevant):** Specify the viewpoint to achieve the desired composition.
-    7.  **Visual Emphasis:** Indicate which aspects of the STEM concept should be visually emphasized.
-    8.  **AI Keywords:** Include relevant keywords that help the image generation model understand the subject and the desired style (e.g., 'electron microscope', 'Schrödinger's equation', 'planetary nebula', '3D model', 'vector graphic', 'rendering').
-    9.  **Considerations for AI Generation:** Be mindful of the strengths and limitations of image generation models. Avoid overly complex details that may not render well.
+    **Output Format:**
+
+    Return ONLY the image generation prompt as a text string. Do not include any other information, greetings, or explanations. The generated prompt MUST always be written in english.
 
     **Example Interaction:**
 
-    **Input (for you, Gemini-2.0-flash):** DNA structure
+    **Input:** E=mc²
 
-    **Your Output (prompt for imagen-3.0-generate-002):**
+    **Your Output:** Minimalist graphic design featuring the equation "E=mc²" in an elegant and modern typography, highlighted with an abstract light burst symbolizing energy, on a contrasting dark background. Keywords: equation, physics, relativity, energy, mass, light, minimalist, graphic design, vector.
 
-    > Detailed scientific illustration of a DNA double helix, showcasing the nitrogenous bases (adenine, thymine, guanine, cytosine) in vibrant and distinct colors, connected by the sugar-phosphate backbone in translucent blue and gray tones. Dark background with subtle connecting lines representing hydrogen bonds. Scanning electron microscope style with side lighting to emphasize texture. Keywords: double helix, DNA, nitrogenous bases, molecular biology, scientific illustration, electron microscopy, molecular structure, vivid colors, dark background.
+    **Input:** DNA structure
 
-    **Another Example:**
+    **Your Output:** Stylized illustration of a DNA double helix with vibrant colors representing the nitrogenous bases, forming a repeating and attractive pattern. Clean background with subtle connecting lines. Keywords: DNA, biology, genetics, molecule, helix, pattern, vivid colors, illustration.
 
-    **Input (for you, Gemini-2.0-flash):** Supermassive black hole
+    **Input:** Definite integral
 
-    **Your Output (prompt for imagen-3.0-generate-002):**
-
-    > Stunning artistic rendering of a supermassive black hole with a bright, swirling accretion disk in intense orange, yellow, and red hues, distorting the surrounding starlight into luminous arcs due to extreme gravitational lensing. A deep, defined black event horizon at the center. Vast, dark cosmic background with faint, distant galaxies. Conceptual astrophysics art style with dramatic lighting and spatial distortion effects. Keywords: supermassive black hole, accretion disk, gravitational lensing, astrophysics, deep space, cosmic phenomenon, astronomical illustration, intense colors, spatial distortion.
-
-    **Your task is to generate prompts of this quality and detail for any STEM concept provided to you.**
-    ```
-    """
+    **Your Output:** Abstract geometric design visualizing the concept of area under a curve through a series of stylized rectangles of varying heights, with a smooth curve overlaid in a contrasting color. Keywords: mathematics, calculus, integral, area, curve, abstract, geometric, graphic design.
+        """
 
     response = genai_client.models.generate_content(
         model=llm_model,
@@ -99,6 +93,7 @@ def generate_prompt_image(
         ],
     )
     logger.info("Prompt generation completed.")
+    logger.info(f"Prompt generated: {response.text}")
 
     return response.text
 
@@ -110,7 +105,7 @@ def generate_image(
     llm_model: str = llm_config.IMAGE_GENERATION_MODEL_NAME,
     bucket_name: str = gcp_config.BUCKET_NAME,
     gcs_path: str = gcp_config.GENAI_IMAGES_PATH,
-) -> None:
+) -> dict:
     """
     Calls a GenAI model exclusively for image generation based on text (prompt)
 
@@ -119,11 +114,16 @@ def generate_image(
         general_image_name: str -> General image name
         images_number: str -> Number of images to generate
         llm_model: str -> Name of the model used to generate the images
+        bucket_name: str -> The name of the Google Cloud Storage bucket to store the image in (Ex: 'my_bucket').
+        gcs_path: str -> The path within the GCS bucket where the image should be stored (Ex: 'my_folder').
 
     Returns:
         None
     """
     logger.info("Generating images...")
+    logger.info(f"Input prompt: {prompt}")
+    logger.info(f"Number of images to generate: {images_number}")
+
     try:
         response = genai_client.models.generate_images(
             model=llm_model,
@@ -132,22 +132,26 @@ def generate_image(
                 number_of_images=images_number,
             ),
         )
+
         for image_number, generated_image in enumerate(response.generated_images):
             bytes_image = BytesIO(generated_image.image.image_bytes)
 
             # Load the image to then be shown
             image = Image.open(bytes_image)
 
-            # Returning the pointer to the beginning
-            bytes_image.seek(0)
+            image.show()
+
+            bytes_image.seek(0)  # Reset pointer for saving
+
+            image_name = f"{gcs_path}/{general_image_name}_{image_number}.png"
 
             upload_image_from_memory(
-                blob_name=f"{gcs_path}/{general_image_name}_{image_number}.png",
-                bucket_name=bucket_name,
-                image=bytes_image,
+                blob_name=image_name, image=bytes_image, bucket_name=bucket_name
             )
-            image.show()
+
+            logger.info(f"Image {image_name} saved in GCS")
+
     except Exception as e:
         raise ValueError(f"There was an error while generating the image: {e}")
 
-    logger.info("Images generated and stored in GCS")
+    logger.info("Images generated")
