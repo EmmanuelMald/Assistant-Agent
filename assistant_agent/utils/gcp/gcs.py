@@ -177,7 +177,11 @@ def upload_image_from_memory(
     blob = bucket.blob(blob_name)
     blob.upload_from_file(image)
 
+    blob.make_public()
+
     logger.info("Image successfully stored in GCS bucket")
+
+    return blob.public_url
 
 
 def upload_file_from_memory(

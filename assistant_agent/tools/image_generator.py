@@ -118,7 +118,7 @@ def generate_image(
         gcs_path: str -> The path within the GCS bucket where the image should be stored (Ex: 'my_folder').
 
     Returns:
-        None
+        str -> Public URl where anyone can see the image
     """
     logger.info("Generating images...")
     logger.info(f"Input prompt: {prompt}")
@@ -145,7 +145,7 @@ def generate_image(
 
             image_name = f"{gcs_path}/{general_image_name}_{image_number}.png"
 
-            upload_image_from_memory(
+            image_url = upload_image_from_memory(
                 blob_name=image_name, image=bytes_image, bucket_name=bucket_name
             )
 
@@ -155,3 +155,6 @@ def generate_image(
         raise ValueError(f"There was an error while generating the image: {e}")
 
     logger.info("Images generated")
+    logger.info(f"Image url: {image_url}")
+
+    return image_url

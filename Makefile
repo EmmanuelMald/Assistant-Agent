@@ -18,3 +18,7 @@ install-git-hooks:
 run-agent:
 	cd assistant_agent && \
 	uv run python hello_agent.py
+
+run-app:
+	cd app &&\
+	uv run streamlit run main.py
