@@ -14,3 +14,7 @@ uv-sync:
 install-git-hooks: 
 	uv run pre-commit install
 	uv run pre-commit install-hooks
+
+run-agent:
+	cd assistant_agent && \
+	uv run python hello_agent.py
