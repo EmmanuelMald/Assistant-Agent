@@ -39,7 +39,23 @@ agent = Agent(
 if __name__ == "__main__":
     logger.info("Starting Agent chat...")
     request = input("Introduce a query (To exit, enter 'exit'):").strip()
+
+    # Keep the last 5 request made by the user
+    memory = list()
+    memory_request_limit = 5
+
     while request != "exit":
-        result = agent.run_sync(request)
+        if len(memory) > memory_request_limit:
+            memory.pop(0)
+
+        full_request = (
+            request + "\n\n" + f"Consider the previous requests: {';'.join(memory)}"
+        )
+
+        result = agent.run_sync(full_request)
+
+        # Store the last request in memory
+        memory.append(request)
+
         logger.info(f"{result.output}")
         request = input("Introduce a query (To exit, enter 'exit'):").strip()
