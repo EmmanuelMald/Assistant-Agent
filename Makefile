@@ -21,4 +21,4 @@ run-agent:
 
 run-app:
 	cd app &&\
-	uv run streamlit run app.py
+	uv run streamlit run agent_app.py
