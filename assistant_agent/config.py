@@ -21,3 +21,4 @@ class LLMConfig(BaseSettings):
     IMAGE_GENERATION_MODEL_NAME: str = "imagen-3.0-generate-002"
     IMAGE_GENERATION_TEMPERATURE: float = 0.8
     DEFAULT_GENERATED_IMAGES: int = 1
+    AGENT_MESSAGES_MEMORY_LIMIT: int = 5
