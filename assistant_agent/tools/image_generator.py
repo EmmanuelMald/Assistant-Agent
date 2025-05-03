@@ -1,7 +1,8 @@
 from loguru import logger
 from google import genai
 from google.genai import types
-from PIL import Image
+
+# from PIL import Image
 from io import BytesIO
 import sys
 
@@ -170,10 +171,10 @@ def generate_image(
         for image_number, generated_image in enumerate(response.generated_images):
             bytes_image = BytesIO(generated_image.image.image_bytes)
 
-            # Load the image to then be shown
-            image = Image.open(bytes_image)
+            # # Load the image to then be shown
+            # image = Image.open(bytes_image)
 
-            image.show()
+            # image.show()
 
             bytes_image.seek(0)  # Reset pointer for saving
 
