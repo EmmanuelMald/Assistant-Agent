@@ -168,6 +168,8 @@ def generate_image(
             ),
         )
 
+        image_urls = list()
+
         for image_number, generated_image in enumerate(response.generated_images):
             bytes_image = BytesIO(generated_image.image.image_bytes)
 
@@ -184,6 +186,8 @@ def generate_image(
                 blob_name=image_name, image=bytes_image, bucket_name=bucket_name
             )
 
+            image_urls.append(image_url)
+
             logger.info(f"Image {image_name} saved in GCS")
 
     except Exception as e:
@@ -192,4 +196,4 @@ def generate_image(
     logger.info("Images generated")
     logger.info(f"Image url: {image_url}")
 
-    return image_url
+    return image_urls
