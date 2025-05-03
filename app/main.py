@@ -7,6 +7,8 @@ sys.path.append("..")
 
 from assistant_agent.hello_agent import agent
 
+MESSAGES_MEMORY_LIMIT = 5
+
 # Config of the streamlit interface
 st.title("Image Generation Agent Interface")
 st.write("Ask the agent to generate images based on your ideas.")
@@ -59,12 +61,31 @@ if prompt := st.chat_input(
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Get previous messages from the history
+    user_messages = [
+        msg["content"] for msg in st.session_state.messages if msg["role"] == "user"
+    ]
+
+    previous_user_prompts = user_messages[-(MESSAGES_MEMORY_LIMIT + 1) : -1]
+
+    if previous_user_prompts:
+        previous_requests_str = "\n\n".join(previous_user_prompts)
+
+        full_request = (
+            f"{prompt}\n\nConsider the previous requests:\n\n{previous_requests_str}"
+        )
+        logger.info(
+            f"Sending request with memory. Previous prompts included: {len(previous_user_prompts)}"
+        )
+
+    else:
+        full_request = prompt
     # Get response from the agent
     try:
         with st.spinner("Agent is thinking..."):  # Spinner text in English
             logger.info(f"Running agent with input: '{prompt}'")
             # Assume 'agent' is the initialized pydantic-ai Agent object
-            result = agent.run_sync(prompt)
+            result = agent.run_sync(full_request)
             response_text = result.output  # The agent's text response
             logger.info(f"Agent responded: '{response_text}'")
 
