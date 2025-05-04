@@ -134,16 +134,15 @@ async def generate_prompt_image(
 
 
 async def generate_prompts(
-    idea: str, general_image_name: str, n_prompts: int = 1
+    ideas: list[str], general_images_names: list[str]
 ) -> list[dict]:
     """
     Generates n different prompts to further being used to generate
     n images.
 
     Args:
-        idea: str -> Idea of the user
-        general_image_name: str -> General image name. Ex "waves_in_the_sea_at_sunset"
-        n_prompts: int -> Number of different prompts to create based on the same idea.
+        ideas: list[str] -> List of different ideas to generate prompts from them. An entry of a list is one idea for a prompt
+        general_images_names: list[str] -> List of different names. The lenght of general_images_names and ideas must be the same
 
     Returns:
         list[dict] -> List of dicionaries, the dictionary is a prompt, which keys must contain:
@@ -153,11 +152,11 @@ async def generate_prompts(
     """
     # Creating a list of prompt tasks
     prompt_tasks = list()
-    for _ in range(n_prompts):
+    for idea in ideas:
         task = generate_prompt_image(idea=idea)
         prompt_tasks.append(task)
 
-    logger.info(f"Generating {n_prompts} prompt(s)...")
+    logger.info(f"Generating {len(ideas)} prompt(s)...")
     prompts = await asyncio.gather(*prompt_tasks)
     logger.info("Prompt(s) generated")
 
@@ -167,7 +166,7 @@ async def generate_prompts(
         # Generation of a dictionary to store the prompt info
         prompt_info = dict()
         prompt_info["prompt"] = prompt
-        prompt_info["image_name"] = f"{general_image_name}_{prompt_number}"
+        prompt_info["image_name"] = f"{general_images_names[prompt_number]}"
 
         requests.append(prompt_info)
 
