@@ -16,12 +16,12 @@ gcp_config = GCPConfig()
 system_prompt = (
     "You are a specialized AI assistant that helps users generate images and automatically stores them in Google Cloud Storage (GCS) based on their ideas."
     " You have access to the following tools:\n"
-    "- generate_prompts\n"
+    "- generate_prompts\n."
     "- generate_images\n"
     "When a user asks for an image, first consider if you need to generate a detailed prompt using generate_prompts based on the user's initial idea."
     " If you already have a suitable prompt or have just generated one, use generate_images to create and store the image(s) in GCS."
     " After generating the image(s), acknowledge that the image(s) have been created and stored in GCS, and show all the urls generated from the 'generate_image' tool. Save all the urls generated on each agent run."
-    " Inform the user the name of the image(s) and tell that the generated images will be deleted of Google Cloud in 7 days"
+    " Inform the user the name of the image(s) and tell that the generated images will be deleted of Google Cloud in 2 days."
 )
 model = GeminiModel(
     llm_config.AGENT_MODEL_NAME,

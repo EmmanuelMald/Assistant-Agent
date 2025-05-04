@@ -134,7 +134,7 @@ async def generate_prompt_image(
 
 
 async def generate_prompts(
-    idea: str, general_image_name: str, n_images: int = 1
+    idea: str, general_image_name: str, n_prompts: int = 1
 ) -> list[dict]:
     """
     Generates n different prompts to further being used to generate
@@ -143,7 +143,7 @@ async def generate_prompts(
     Args:
         idea: str -> Idea of the user
         general_image_name: str -> General image name. Ex "waves_in_the_sea_at_sunset"
-        n_images: int -> Number of different images to create
+        n_prompts: int -> Number of different prompts to create based on the same idea.
 
     Returns:
         list[dict] -> List of dicionaries, the dictionary is a prompt, which keys must contain:
@@ -153,11 +153,11 @@ async def generate_prompts(
     """
     # Creating a list of prompt tasks
     prompt_tasks = list()
-    for _ in range(n_images):
+    for _ in range(n_prompts):
         task = generate_prompt_image(idea=idea)
         prompt_tasks.append(task)
 
-    logger.info("Generating prompt(s)...")
+    logger.info(f"Generating {n_prompts} prompt(s)...")
     prompts = await asyncio.gather(*prompt_tasks)
     logger.info("Prompt(s) generated")
 
