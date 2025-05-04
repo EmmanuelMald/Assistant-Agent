@@ -5,9 +5,9 @@ from pydantic import SecretStr
 class GCPConfig(BaseSettings):
     PROJECT_ID: str = "learned-stone-454021-c8"
     DEV_SA: str = "dev-service-account@learned-stone-454021-c8.iam.gserviceaccount.com"
-    BUCKET_NAME: str = "rag_llm_energy_expert"
+    BUCKET_NAME: str = "ai_agent_assistant"
     REGION: str = "northamerica-south1"
-    GENAI_IMAGES_PATH: str = "genai_images"
+    GENAI_IMAGES_PATH: str = "genai_images/tmp"
 
 
 # check models: https://ai.google.dev/gemini-api/docs/image-generation
