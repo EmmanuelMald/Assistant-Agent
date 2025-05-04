@@ -3,7 +3,7 @@
 # is lost when the container is turned off. So the tf.state needs to exists in gcs
 terraform {
   backend "gcs" {
-    bucket = "rag_llm_energy_expert"
+    bucket = "ai_agent_assistant"
     prefix = "terraform/state"
   }
 }
