@@ -4,6 +4,7 @@ from google.genai import types
 
 # from PIL import Image
 from io import BytesIO
+import asyncio
 import sys
 
 sys.path.append("../..")
@@ -19,7 +20,7 @@ llm_config = get_llm_config()
 genai_client = genai.Client(api_key=llm_config.API_KEY.get_secret_value())
 
 
-def generate_prompt_image(
+async def generate_prompt_image(
     idea: str,
     llm_model: str = llm_config.PROMPTING_MODEL_NAME,
     temperature: float = llm_config.PROMPTING_MODEL_TEMPERATURE,
@@ -117,7 +118,7 @@ def generate_prompt_image(
     Remember to tailor the prompt complexity and detail level to the user's request. Start with the core idea (subject, context, style) and add details and modifiers as needed. Always generate the prompt in english
     """
 
-    response = genai_client.models.generate_content(
+    response = await genai_client.aio.models.generate_content(
         model=llm_model,
         config=types.GenerateContentConfig(
             temperature=temperature,
@@ -133,12 +134,42 @@ def generate_prompt_image(
     return response.text
 
 
-def generate_image(
+async def generate_prompts(idea=str, n_images: int = 1) -> dict[str]:
+    """
+    Generates n different prompts to further being used to generate
+    n images.
+
+    Args:
+        idea: str -> Idea of the user
+        n_images: int -> Number of different images to create
+    """
+    # Creating a list of prompt tasks
+    prompt_tasks = list()
+    for _ in range(n_images):
+        task = generate_prompt_image(idea=idea)
+        prompt_tasks.append(task)
+
+    logger.info("Generating prompt(s)...")
+    prompts = await asyncio.gather(*prompt_tasks)
+    logger.info("Prompt(s) generated")
+
+    # Generate a list of dictionaries, where each dicitionary will contain the info of each prompt
+    requests = list()
+    for prompt_number, prompt in enumerate(prompts):
+        # Generation of a dictionary to store the prompt info
+        prompt_info = dict()
+        prompt_info["prompt"] = prompt
+        prompt_info["image_name"] = f"{idea}_{prompt_number}"
+
+        requests.append(prompt_info)
+
+    return requests
+
+
+async def generate_image(
     prompt: str,
     general_image_name: str,
-    images_number: int = llm_config.DEFAULT_GENERATED_IMAGES,
     llm_model: str = llm_config.IMAGE_GENERATION_MODEL_NAME,
-    bucket_name: str = gcp_config.BUCKET_NAME,
     gcs_path: str = gcp_config.GENAI_IMAGES_PATH,
 ) -> dict:
     """
@@ -147,53 +178,77 @@ def generate_image(
     Args:
         prompt:str -> Text describing the image to generate
         general_image_name: str -> General image name
-        images_number: str -> Number of images to generate
         llm_model: str -> Name of the model used to generate the images
         bucket_name: str -> The name of the Google Cloud Storage bucket to store the image in (Ex: 'my_bucket').
         gcs_path: str -> The path within the GCS bucket where the image should be stored (Ex: 'my_folder').
 
     Returns:
-        str -> Public URl where anyone can see the image
+        dict -> Dictionary with the image_name and the image_bytes
     """
     logger.info("Generating images...")
     logger.info(f"Input prompt: {prompt}")
-    logger.info(f"Number of images to generate: {images_number}")
 
+    image_data = {}
+
+    response = await genai_client.aio.models.generate_images(
+        model=llm_model,
+        prompt=prompt,
+        config=types.GenerateImagesConfig(
+            number_of_images=llm_config.DEFAULT_GENERATED_IMAGES,
+        ),
+    )
+
+    image_data["image_name"] = f"{gcs_path}/{general_image_name}.png"
     try:
-        response = genai_client.models.generate_images(
-            model=llm_model,
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=images_number,
-            ),
+        image_data["image_bytes"] = BytesIO(
+            response.generated_images[0].image.image_bytes
+        )
+    except Exception as e:
+        raise ValueError(f"Eror while fetching the image: {e}")
+
+    logger.info("Image generated successfully")
+    return image_data
+
+
+async def generate_images(requests: list[dict]) -> list[str]:
+    """
+    Generates n number of images based on n number of requests
+
+    Args:
+        requests: list[dict] -> List of dictionaries, each dictianary can be represented as one image generation request
+                                The dictionary must contain two keys:
+                                        - prompt: Prompt that will generate the image
+                                        - image_name: Name of the image
+
+    Returns:
+        list[str] -> A list of public urls where the images can be downloaded
+    """
+    # Creating a list of generation tasks
+    generation_tasks = list()
+
+    logger.info("Preparing generation requests")
+    for request in requests:
+        task = generate_image(
+            prompt=request["prompt"], general_image_name=request["image_name"]
+        )
+        generation_tasks.append(task)
+
+    logger.info("Launching concurrent generation")
+    images_data = await asyncio.gather(*generation_tasks)
+
+    # As upload_image_from_memory is a syncronus function, it will be executed in
+    # different threads to reduce the execution time
+    storage_tasks = list()
+    for image_data in images_data:
+        task = asyncio.to_thread(
+            upload_image_from_memory,
+            image_data["image_name"],  # First argument of the function
+            image_data["image_bytes"],  # Second argument
+            gcp_config.BUCKET_NAME,  # last argument
         )
 
-        image_urls = list()
+        storage_tasks.append(task)
 
-        for image_number, generated_image in enumerate(response.generated_images):
-            bytes_image = BytesIO(generated_image.image.image_bytes)
+    images_urls = await asyncio.gather(*storage_tasks, return_exceptions=True)
 
-            # # Load the image to then be shown
-            # image = Image.open(bytes_image)
-
-            # image.show()
-
-            bytes_image.seek(0)  # Reset pointer for saving
-
-            image_name = f"{gcs_path}/{general_image_name}_{image_number}.png"
-
-            image_url = upload_image_from_memory(
-                blob_name=image_name, image=bytes_image, bucket_name=bucket_name
-            )
-
-            image_urls.append(image_url)
-
-            logger.info(f"Image {image_name} saved in GCS")
-
-    except Exception as e:
-        raise ValueError(f"There was an error while generating the image: {e}")
-
-    logger.info("Images generated")
-    logger.info(f"Image url: {image_url}")
-
-    return image_urls
+    return images_urls
