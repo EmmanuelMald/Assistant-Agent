@@ -32,8 +32,7 @@ async def generate_prompt_image(
     relevant keywords to help the image generator understand the context.
 
     Args:
-        ctx (RunContext[str]): The execution context containing the main idea
-                            as a string dependency (ctx.deps).
+        idea: str -> User's idea. Ex: "Waves in the sea at sunset'
         llm_model (str): The model to be used for generating the prompt.
         temperature (float): The temperature setting for the model, which controls
                             the randomness of the output.
@@ -134,14 +133,23 @@ async def generate_prompt_image(
     return response.text
 
 
-async def generate_prompts(idea=str, n_images: int = 1) -> dict[str]:
+async def generate_prompts(
+    idea: str, general_image_name: str, n_images: int = 1
+) -> list[dict]:
     """
     Generates n different prompts to further being used to generate
     n images.
 
     Args:
         idea: str -> Idea of the user
+        general_image_name: str -> General image name. Ex "waves_in_the_sea_at_sunset"
         n_images: int -> Number of different images to create
+
+    Returns:
+        list[dict] -> List of dicionaries, the dictionary is a prompt, which keys must contain:
+                        - prompt: Generated prompt
+                        - image_name: The general_image_name with the number of the prompt generated
+
     """
     # Creating a list of prompt tasks
     prompt_tasks = list()
@@ -159,7 +167,7 @@ async def generate_prompts(idea=str, n_images: int = 1) -> dict[str]:
         # Generation of a dictionary to store the prompt info
         prompt_info = dict()
         prompt_info["prompt"] = prompt
-        prompt_info["image_name"] = f"{idea}_{prompt_number}"
+        prompt_info["image_name"] = f"{general_image_name}_{prompt_number}"
 
         requests.append(prompt_info)
 
@@ -177,7 +185,7 @@ async def generate_image(
 
     Args:
         prompt:str -> Text describing the image to generate
-        general_image_name: str -> General image name
+        general_image_name: str -> General image name. Ex "waves_in_the_sea"
         llm_model: str -> Name of the model used to generate the images
         bucket_name: str -> The name of the Google Cloud Storage bucket to store the image in (Ex: 'my_bucket').
         gcs_path: str -> The path within the GCS bucket where the image should be stored (Ex: 'my_folder').
