@@ -8,6 +8,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "fastapi>=0.115.12",
     "google-genai>=1.12.1",
     "loguru>=0.7.3",
     "pillow>=11.2.1",
@@ -15,6 +16,7 @@ dev = [
     "pydantic-ai>=0.1.8",
     "pydantic-settings>=2.9.1",
     "streamlit>=1.45.0",
+    "uvicorn>=0.34.2",
 ]
 gcp = [
     "gcsfs>=2025.3.0",
