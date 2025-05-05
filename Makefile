@@ -36,3 +36,7 @@ push-agent-image:
 
 run-agent-app-container:
 	docker run -p 8501:8501 $(AGENT_IMAGE_NAME)
+
+run-tests:
+	cd tests &&\
+	uv run pytest
