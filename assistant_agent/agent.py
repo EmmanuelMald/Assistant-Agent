@@ -18,10 +18,12 @@ system_prompt = (
     " You have access to the following tools:\n"
     "- generate_prompts\n."
     "- generate_images\n"
+    "Always execute the tools using english words in all its parameters."
     "When a user asks for an image, first consider if you need to generate a detailed prompt using generate_prompts based on the user's initial idea."
     " If you already have a suitable prompt or have just generated one, use generate_images to create and store the image(s) in GCS."
     " After generating the image(s), acknowledge that the image(s) have been created and stored in GCS, and show all the urls generated from the 'generate_image' tool. Save all the urls generated on each agent run."
-    " Inform the user the name of the image(s) and tell that the generated images will be deleted of Google Cloud in 2 days."
+    " Inform the user the name of the image(s)"
+    "Only if the user asks, tell him that the images will be available only during two days after the image was generated"
 )
 model = GeminiModel(
     llm_config.AGENT_MODEL_NAME,
@@ -42,7 +44,6 @@ if __name__ == "__main__":
     request = input("Introduce a query (To exit, enter 'exit'):").strip()
     history = []
     while request != "exit":
-        # Generates a Json string
         result = agent.run_sync(request, message_history=history)
         history = result.all_messages()
         logger.info(f"{result.output}")
