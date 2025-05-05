@@ -24,7 +24,7 @@ run-agent-api:
 	uv run -- uvicorn main:app --reload
 	
 run-app:
-	cd app &&\
+	cd app/frontend &&\
 	uv run streamlit run agent_app.py
 
 build-agent-app-image:
