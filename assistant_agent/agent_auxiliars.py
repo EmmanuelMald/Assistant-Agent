@@ -37,11 +37,8 @@ def prepare_to_send_chat_history(chat_history: bytes) -> str:
     Returns:
         str: str -> JSON string
     """
-    chat_history_python_objects = json.loads(chat_history)
 
-    chat_history_string = json.dumps(chat_history_python_objects)
-
-    return chat_history_string
+    return chat_history.decode("UTF-8")
 
 
 def find_image_urls(text: str) -> list[str]:
