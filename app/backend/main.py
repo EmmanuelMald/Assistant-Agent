@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException
-from models import AgentRequest, AgentResponse
 from loguru import logger
 
 import sys
 
 sys.path.append("../..")
 
+from app.backend.models import AgentRequest, AgentResponse
 from assistant_agent.agent import agent
 from assistant_agent.agent_auxiliars import (
     prepare_to_read_chat_history,
