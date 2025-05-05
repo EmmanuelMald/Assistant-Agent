@@ -17,7 +17,10 @@ install-git-hooks:
 
 run-agent:
 	cd assistant_agent && \
-	uv run python hello_agent.py
+	uv run python agent.py
+
+run-agent-api:
+	cd app/backend &&\
 
 run-app:
 	cd app &&\
