@@ -40,12 +40,10 @@ agent = Agent(
 if __name__ == "__main__":
     logger.info("Starting Agent chat...")
     request = input("Introduce a query (To exit, enter 'exit'):").strip()
-    result = agent.run_sync(request)
-
-    logger.info(result.output)
-
+    history = []
     while request != "exit":
-        history = result.all_messages()
+        # Generates a Json string
         result = agent.run_sync(request, message_history=history)
+        history = result.all_messages()
         logger.info(f"{result.output}")
         request = input("Introduce a query (To exit, enter 'exit'):").strip()
