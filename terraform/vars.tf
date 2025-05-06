@@ -60,13 +60,25 @@ variable "agent_api_port" {
   default     = 8000
 }
 
-variable "cloudrun_agent_ui_name" {
+variable "agent_ui_instance_name" {
   type        = string
-  description = "Name of the CloudRun instance for the embedding service"
+  description = "Name of the CloudRun instance that contains the agent UI"
   default     = "agent-app"
 }
 
-variable "cloudrun_image_generator_agent_instance_port" {
+variable "agent_ui_image_name" {
+  type        = string
+  description = "Name of the docker image of the the agent UI"
+  default     = "agent_app"
+}
+
+variable "agent_ui_tag_image" {
+  type        = string
+  description = "Tag of the docker image of the the agent UI"
+  default     = "latest"
+}
+
+variable "agent_ui_port" {
   type        = number
   description = "Port where the container will listen"
   default     = 8501
