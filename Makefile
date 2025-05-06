@@ -1,7 +1,9 @@
 GCP_PROJECT_ID="learned-stone-454021-c8"
 GCP_SA="dev-service-account@learned-stone-454021-c8.iam.gserviceaccount.com"
 GCP_REGION="northamerica-south1"
-AGENT_IMAGE_NAME="northamerica-south1-docker.pkg.dev/$(GCP_PROJECT_ID)/ai-agents/image-generator-agent:latest"
+ARTIFACT_REGISTRY_NAME="ai-agents"
+AGENT_IMAGE_NAME="$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(ARTIFACT_REGISTRY_NAME)/image-generator-agent:latest"
+AGENT_API_IMAGE_NAME="$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(ARTIFACT_REGISTRY_NAME)/ai_agent_api:latest"
 
 
 gcloud-auth:
@@ -22,7 +24,18 @@ run-agent:
 run-agent-api:
 	cd app/backend &&\
 	uv run -- uvicorn main:app --reload
+
+build-agent-api:
+	cp pyproject.toml uv.lock app/backend/.
+	docker build \
+	-f app/backend/agent_api.dockerfile \
+	-t $(AGENT_API_IMAGE_NAME) \
+	.
+	rm app/backend/pyproject.toml app/backend/uv.lock
 	
+push-agent-api:
+	docker push $(AGENT_API_IMAGE_NAME)
+
 run-app:
 	cd app/frontend &&\
 	uv run streamlit run agent_app.py

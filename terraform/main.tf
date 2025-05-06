@@ -22,22 +22,22 @@ resource "google_artifact_registry_repository" "ai_agents_artifact_registry" {
 }
 
 
-############### CLOUD RUN - IMAGE GENERATOR AGENT ###############
+############### CLOUD RUN - AGENT API ###############
 
-resource "google_cloud_run_v2_service" "cloudrun_image_agent_instance" {
-  name                = var.cloudrun_image_generator_agent
+resource "google_cloud_run_v2_service" "agent_api_instance" {
+  name                = var.agent_api_instance_name
   location            = var.gcp_region
   client              = "terraform"
   deletion_protection = false
 
   template {
-
+    # Service account that the container will use to authenticate with GCP
     service_account = var.gcp_dev_sa
 
     containers {
-      image = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${var.artifact_registry_name}/image-generator-agent:latest"
+      image = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${var.artifact_registry_name}/${var.agent_api_image_name}:${var.agent_api_tag_image}"
       ports {
-        container_port = var.cloudrun_image_generator_agent_instance_port
+        container_port = var.agent_api_port
       }
       resources {
         limits = {
@@ -48,17 +48,15 @@ resource "google_cloud_run_v2_service" "cloudrun_image_agent_instance" {
     }
     scaling {
       # Min instances
-      min_instance_count = 1
+      min_instance_count = 0
       max_instance_count = 2
     }
-
-
   }
 }
 
-resource "google_cloud_run_v2_service_iam_member" "cloudrun_image_agent_auth" {
-  location = google_cloud_run_v2_service.cloudrun_image_agent_instance.location
-  name     = google_cloud_run_v2_service.cloudrun_image_agent_instance.name
+resource "google_cloud_run_v2_service_iam_member" "agent_api_instance_auth" {
+  location = google_cloud_run_v2_service.cloudrun_agent_api_instance.location
+  name     = google_cloud_run_v2_service.cloudrun_agent_api_instance.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

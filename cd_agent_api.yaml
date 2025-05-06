@@ -1,0 +1,74 @@
+# The value of the - name parameter (container image or cloud builders) can be obtained from
+# https://cloud.google.com/build/docs/cloud-builders
+steps:
+
+
+  - id: 'check_artifact_registry_exists'
+    name: 'hashicorp/terraform'
+    entrypoint: 'sh'
+    args: 
+     - '-c'
+     - | 
+      cd terraform
+      terraform init && terraform apply \
+      -target=google_artifact_registry_repository.ai_agents_artifact_registry \
+      -auto-approve
+
+
+  # Prepare to test the build of the docker image
+  - id: 'copy_uv_files'
+    name: 'ubuntu'
+    entrypoint: 'sh'
+    args:
+      - '-c' # Execute the following commands in a sequential manner
+      - | # Allow to write commands in more than 1 row
+        cp pyproject.toml uv.lock app/backend/.
+
+
+  - id: 'build_agent_api_image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build 
+      - '-t'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:${SHORT_SHA}'
+      - '-f'
+      - 'app/backend/agent_api.dockerfile'
+      - '.'
+
+
+  - id: 'push_agent_api_image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push 
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:${SHORT_SHA}'
+
+
+  - id: 'deploy_ai_agent_api'
+    name: 'hashicorp/terraform'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cd terraform
+        terraform init \
+        && terraform apply -var="agent_api_tag_image=$SHORT_SHA" \
+        -target=google_cloud_run_v2_service.agent_api_instance \
+        -target=google_cloud_run_v2_service_iam_member.agent_api_instance_auth \
+        -auto-approve
+
+
+
+substitutions:
+  _UV_VERSION: 0.5.4
+  _ARTREG_NAME: ai-agents
+  _ARTREG_REGION: northamerica-south1
+  _AGENTAPI_IMAGNAME: agent_api
+  _CLOUDRUN_REGION: northamerica-south1
+
+
+logsBucket: 'gs://ai_agent_assistant/build_logs'
+
+
+options:
+  dynamicSubstitutions: true
+  logging: GCS_ONLY
