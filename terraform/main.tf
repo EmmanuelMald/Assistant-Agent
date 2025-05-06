@@ -55,8 +55,8 @@ resource "google_cloud_run_v2_service" "agent_api_instance" {
 }
 
 resource "google_cloud_run_v2_service_iam_member" "agent_api_instance_auth" {
-  location = google_cloud_run_v2_service.cloudrun_agent_api_instance.location
-  name     = google_cloud_run_v2_service.cloudrun_agent_api_instance.name
+  location = google_cloud_run_v2_service.agent_api_instance.location
+  name     = google_cloud_run_v2_service.agent_api_instance.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
