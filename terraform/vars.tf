@@ -30,14 +30,37 @@ variable "artifact_registry_name" {
   default     = "ai-agents"
 }
 
-
 variable "artifact_registry_dry_run" {
   type        = bool
   description = "Determines if cleanup policies delete artifacts. true: No artifacts are deleted. false: Artifacts are deleted or kept depending on the policies"
   default     = false
 }
 
-variable "cloudrun_image_generator_agent" {
+variable "agent_api_instance_name" {
+  type        = string
+  description = "Name of the CloudRun instance that contains the agent API"
+  default     = "agent-api"
+}
+
+variable "agent_api_image_name" {
+  type        = string
+  description = "Name of the agent api docker image"
+  default     = "agent_api"
+}
+
+variable "agent_api_tag_image" {
+  type        = string
+  description = "Tag of the docker image"
+  default     = "latest"
+}
+
+variable "agent_api_port" {
+  type        = number
+  description = "Port where the container of the agent API will listen"
+  default     = 8000
+}
+
+variable "cloudrun_agent_ui_name" {
   type        = string
   description = "Name of the CloudRun instance for the embedding service"
   default     = "agent-app"
