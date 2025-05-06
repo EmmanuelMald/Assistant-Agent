@@ -25,16 +25,21 @@ steps:
         cp pyproject.toml uv.lock app/backend/.
 
 
-  - id: 'validate_docker_build'
+  - id: 'build_agent_api_image'
     name: 'gcr.io/cloud-builders/docker'
     args:
       - build 
       - '-t'
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:temp'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:$SHORT_SHA'
       - '-f'
       - 'app/backend/agent_api.dockerfile'
       - '.'
 
+  - id: 'push_agent_api_image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push 
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:$SHORT_SHA'
 
 
 substitutions:
