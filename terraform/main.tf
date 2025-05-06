@@ -59,6 +59,7 @@ resource "google_cloud_run_v2_service" "agent_api_instance" {
   }
 }
 
+# The service account in the CD that executes this, needs the run.services.setIamPolicy (in CloudRun Admin)
 resource "google_cloud_run_v2_service_iam_member" "agent_api_instance_auth" {
   location = google_cloud_run_v2_service.agent_api_instance.location
   name     = google_cloud_run_v2_service.agent_api_instance.name
