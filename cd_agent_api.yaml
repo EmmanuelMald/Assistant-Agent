@@ -43,6 +43,7 @@ steps:
       - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:${SHORT_SHA}'
 
 
+  # The service account in the CD that executes this, needs the run.services.setIamPolicy (in CloudRun Admin)
   - id: 'deploy_ai_agent_api'
     name: 'hashicorp/terraform'
     entrypoint: 'sh'
@@ -51,7 +52,7 @@ steps:
       - |
         cd terraform
         terraform init \
-        && terraform apply -var="agent_api_tag_image=$SHORT_SHA" \
+        && terraform apply -var="agent_api_tag_image=${SHORT_SHA}" \
         -target=google_cloud_run_v2_service.agent_api_instance \
         -target=google_cloud_run_v2_service_iam_member.agent_api_instance_auth \
         -auto-approve

@@ -14,7 +14,7 @@ steps:
       -auto-approve
 
 # As for the tests to succeed requires info from GCP, specially from secret manager
-# The service account that will execute this pipeline must have permission to access secrets
+# The service account that will execute this pipeline must have permission to access secrets (Secret Manager Secret Accesor)
   - id: 'install_and_test'
     name: 'python:${_PYTHON_VERSION}'
     entrypoint: 'bash'
