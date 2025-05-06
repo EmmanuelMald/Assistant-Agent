@@ -39,6 +39,7 @@ agent = Agent(
     system_prompt=system_prompt,
 )
 
+# This will execute the agent on the local console
 if __name__ == "__main__":
     logger.info("Starting Agent chat...")
     request = input("Introduce a query (To exit, enter 'exit'):").strip()
