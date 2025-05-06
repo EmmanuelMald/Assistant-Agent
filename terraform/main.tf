@@ -19,6 +19,11 @@ resource "google_artifact_registry_repository" "ai_agents_artifact_registry" {
       older_than = "10d" # after 10 days untagged, delete the image 
     }
   }
+  # Check documentation for vulnerability scanning
+  # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/artifact_registry_repository.html#nested_vulnerability_scanning_config
+  vulnerability_scanning_config {
+    enablement_config = "DISABLED"
+  }
 }
 
 
