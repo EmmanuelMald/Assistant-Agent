@@ -66,3 +66,43 @@ resource "google_cloud_run_v2_service_iam_member" "agent_api_instance_auth" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+#################### CLOUD RUN - AGENT UI #######################
+
+resource "google_cloud_run_v2_service" "agent_ui_instance" {
+  name                = var.agent_ui_instance_name
+  location            = var.gcp_region
+  client              = "terraform"
+  deletion_protection = false
+
+  template {
+    # Service account that the container will use to authenticate with GCP
+    service_account = var.gcp_dev_sa
+
+    containers {
+      image = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${var.artifact_registry_name}/${var.agent_ui_image_name}:${var.agent_ui_tag_image}"
+      ports {
+        container_port = var.agent_ui_port
+      }
+      resources {
+        limits = {
+          memory = "2Gi"
+          cpu    = "1"
+        }
+      }
+    }
+    scaling {
+      # Min instances
+      min_instance_count = 0
+      max_instance_count = 2
+    }
+  }
+}
+
+# The service account in the CD that executes this, needs the run.services.setIamPolicy (in CloudRun Admin)
+resource "google_cloud_run_v2_service_iam_member" "agent_ui_instance_auth" {
+  location = google_cloud_run_v2_service.agent_ui_instance.location
+  name     = google_cloud_run_v2_service.agent_ui_instance.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
