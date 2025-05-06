@@ -24,6 +24,13 @@ def main():
     st.title("Image Generation Agent")
     st.write("Ask the agent to generate images based on your ideas.")
 
+    # Track if a prompt is being processed
+    if "processing_request" not in st.session_state:
+        st.session_state.processing_request = False
+    # Temporal storage of the current prompt
+    if "active_prompt" not in st.session_state:
+        st.session_state.active_prompt = None
+
     # Visual chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -45,14 +52,24 @@ def main():
                     st.image(url, width=300)
 
     # User input
-    if prompt := st.chat_input("What image idea do you have?"):
-        # Add user prompt in the visual chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    user_prompt_input = st.chat_input(
+        "What image idea do you have?", disabled=st.session_state.processing_request
+    )
 
-        logger.debug(f"User prompt: {prompt}")
-        # Prepare to send the request to the agent API
+    if user_prompt_input and not st.session_state.processing_request:
+        st.session_state.messages.append({"role": "user", "content": user_prompt_input})
+        with st.chat_message("user"):  # Add user prompt in the visual chat history
+            st.markdown(user_prompt_input)
+
+        st.session_state.active_prompt = user_prompt_input  # Store prompt to process
+        st.session_state.processing_request = True  # Set as processing prompt
+        st.rerun()  # Update the input button to be disabled and start processing
+
+    # Processing prompt
+    if st.session_state.processing_request and st.session_state.active_prompt:
+        prompt_to_process = st.session_state.active_prompt  # Get the prompt
+
+        logger.debug(f"User prompt to process: {prompt_to_process}")
         try:
             with st.spinner("Agent is thinking..."):
                 # Get the whole chat history
@@ -60,7 +77,7 @@ def main():
                 logger.debug("Chat history obtained")
 
                 payload = {
-                    "current_user_prompt": prompt,
+                    "current_user_prompt": prompt_to_process,
                     "chat_history": previous_formatted_history,
                 }
                 logger.debug("Payload created")
@@ -157,7 +174,9 @@ def main():
                 {"role": "assistant", "content": error_message, "image_urls": []}
             )
         finally:
-            # Update the UI after any unexpected error
+            # Clear all the states and rerun the UI
+            st.session_state.processing_request = False
+            st.session_state.active_prompt = None
             st.rerun()
 
 
