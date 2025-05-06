@@ -13,6 +13,9 @@ from assistant_agent.utils.gcp.gcs import upload_image_from_memory
 from assistant_agent.credentials import get_llm_config
 from assistant_agent.config import GCPConfig
 
+# Setting the logs level
+logger.remove()
+logger.add(sys.stderr, level="INFO")
 
 gcp_config = GCPConfig()
 llm_config = get_llm_config()
@@ -137,8 +140,8 @@ async def generate_prompts(
     ideas: list[str], general_images_names: list[str]
 ) -> list[dict]:
     """
-    Generates n different prompts to further being used to generate
-    n images.
+    Generates n different prompts to further being used to generate n images.
+    The parameters 'ideas' and 'general_images_names' must be of the same length
 
     Args:
         ideas: list[str] -> List of different ideas to generate prompts from them. An entry of a list is one idea for a prompt
@@ -150,6 +153,43 @@ async def generate_prompts(
                         - image_name: The general_image_name with the number of the prompt generated
 
     """
+    logger.debug("generate_prompts function started")
+
+    parameters = {"ideas": ideas, "general_images_names": general_images_names}
+
+    logger.debug("Validating input parameters...")
+    if not all([isinstance(param, list) for param in parameters.values()]):
+        raise ValueError(
+            f"The parameters {', '.join(parameters.keys())} must be list type"
+        )
+
+    elif len(ideas) != len(general_images_names):
+        raise ValueError(
+            f"The parameters {', '.join(parameters.keys())} must have the same length"
+        )
+
+    elif len(ideas) < 1:
+        raise ValueError(
+            f"The parameters {', '.join(parameters.keys())} must have at least 1 entry"
+        )
+
+    elif not all([isinstance(idea, str) and idea != "" for idea in ideas]):
+        raise ValueError(
+            "All the entries of the ideas parameter must be non empty strings"
+        )
+
+    elif not all(
+        [
+            isinstance(image_name, str) and image_name != ""
+            for image_name in general_images_names
+        ]
+    ):
+        raise ValueError(
+            "All the entries of the general_images_names parameter must be non empty strings"
+        )
+
+    logger.debug(f"{ideas =}")
+    logger.debug(f"{general_images_names = }")
     # Creating a list of prompt tasks
     prompt_tasks = list()
     for idea in ideas:
@@ -157,20 +197,22 @@ async def generate_prompts(
         prompt_tasks.append(task)
 
     logger.info(f"Generating {len(ideas)} prompt(s)...")
-    prompts = await asyncio.gather(*prompt_tasks)
+    prompts_generated = await asyncio.gather(*prompt_tasks)
     logger.info("Prompt(s) generated")
 
     # Generate a list of dictionaries, where each dicitionary will contain the info of each prompt
-    requests = list()
-    for prompt_number, prompt in enumerate(prompts):
+    prompts = list()
+    for prompt_number, prompt in enumerate(prompts_generated):
         # Generation of a dictionary to store the prompt info
         prompt_info = dict()
         prompt_info["prompt"] = prompt
         prompt_info["image_name"] = f"{general_images_names[prompt_number]}"
 
-        requests.append(prompt_info)
+        prompts.append(prompt_info)
 
-    return requests
+    logger.debug(f"Prompt's data: {prompts}")
+
+    return prompts
 
 
 async def generate_image(
@@ -192,7 +234,6 @@ async def generate_image(
     Returns:
         dict -> Dictionary with the image_name and the image_bytes
     """
-    logger.info("Generating images...")
     logger.info(f"Input prompt: {prompt}")
 
     image_data = {}
@@ -217,7 +258,7 @@ async def generate_image(
     return image_data
 
 
-async def generate_images(requests: list[dict]) -> list[str]:
+async def generate_images(prompts_info: list[dict]) -> list[str]:
     """
     Generates n number of images based on n number of requests
 
@@ -230,11 +271,36 @@ async def generate_images(requests: list[dict]) -> list[str]:
     Returns:
         list[str] -> A list of public urls where the images can be downloaded
     """
+
+    logger.debug("generate_images function started")
+    logger.debug("Validating input parameters...")
+
+    if not isinstance(prompts_info, list):
+        raise ValueError("prompts_info must be a list")
+    elif len(prompts_info) < 1:
+        raise ValueError("prompts_info must have at least one entry")
+    elif not all([isinstance(prompt_data, dict) for prompt_data in prompts_info]):
+        raise ValueError(
+            "Each entry of the prompts_info parameter must be a dictionary"
+        )
+    elif not all(
+        [
+            "prompt" in prompt_data.keys() and "image_name" in prompt_data.keys()
+            for prompt_data in prompts_info
+        ]
+    ):
+        raise ValueError(
+            "Each dictionary must contain the keys 'prompt' and 'image_name'"
+        )
+
+    logger.info(f"Generating {len(prompts_info)} images...")
+
+    logger.debug(f"{prompts_info = }")
     # Creating a list of generation tasks
     generation_tasks = list()
 
     logger.info("Preparing generation requests")
-    for request in requests:
+    for request in prompts_info:
         task = generate_image(
             prompt=request["prompt"], general_image_name=request["image_name"]
         )
