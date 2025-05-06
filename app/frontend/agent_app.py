@@ -7,7 +7,7 @@ import requests
 sys.path.append("../..")
 
 
-from assistant_agent.agent_auxiliars import find_image_urls
+from app.frontend.utils import find_image_urls
 from app.frontend.config import BackendInfo
 
 
