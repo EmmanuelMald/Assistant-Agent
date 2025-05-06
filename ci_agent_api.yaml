@@ -63,3 +63,4 @@ logsBucket: 'gs://ai_agent_assistant/build_logs'
 options:
   dynamicSubstitutions: true
   logging: GCS_ONLY
+
