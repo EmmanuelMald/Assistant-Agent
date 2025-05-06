@@ -50,8 +50,8 @@ steps:
 
 
 substitutions:
-  _PYTHON_VERSION: 3.11
-  _UV_VERSION: 0.5.4
+  _PYTHON_VERSION: "3.11"
+  _UV_VERSION: "0.5.4"
   _ARTREG_NAME: ai-agents
   _ARTREG_REGION: northamerica-south1
   _AGENTAPI_IMAGNAME: agent_api
