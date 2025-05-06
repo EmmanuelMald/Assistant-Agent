@@ -2,7 +2,6 @@ from pydantic_settings import BaseSettings
 from pydantic import SecretStr
 
 
-# New comment to check the CICD
 class GCPConfig(BaseSettings):
     PROJECT_ID: str = "learned-stone-454021-c8"
     DEV_SA: str = "dev-service-account@learned-stone-454021-c8.iam.gserviceaccount.com"
