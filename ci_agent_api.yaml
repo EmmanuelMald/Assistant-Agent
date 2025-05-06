@@ -13,7 +13,8 @@ steps:
       -target=google_artifact_registry_repository.ai_agents_artifact_registry \
       -auto-approve
 
-
+# As for the tests to succeed requires info from GCP, specially from secret manager
+# The service account that will execute this pipeline must have permission to access secrets
   - id: 'install_and_test'
     name: 'python:${_PYTHON_VERSION}'
     entrypoint: 'bash'
