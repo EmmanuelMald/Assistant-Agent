@@ -18,6 +18,16 @@ steps:
       -auto-approve
 
 
+    # Prepare to test the build of the docker image
+  - id: 'copy_uv_files'
+    name: 'ubuntu'
+    entrypoint: 'sh'
+    args:
+      - '-c' # Execute the following commands in a sequential manner
+      - | # Allow to write commands in more than 1 row
+        cp pyproject.toml uv.lock app/backend/.
+
+
   - id: 'build_agent_api_image'
     name: 'gcr.io/cloud-builders/docker'
     args:
