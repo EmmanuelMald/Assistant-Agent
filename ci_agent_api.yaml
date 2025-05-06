@@ -2,17 +2,6 @@
 # https://cloud.google.com/build/docs/cloud-builders
 steps:
 
-  - id: 'check_artifact_registry_exists'
-    name: 'hashicorp/terraform'
-    entrypoint: 'sh'
-    args: 
-     - '-c'
-     - | 
-      cd terraform
-      terraform init && terraform apply \
-      -target=google_artifact_registry_repository.ai_agents_artifact_registry \
-      -auto-approve
-
 # As for the tests to succeed requires info from GCP, specially from secret manager
 # The service account that will execute this pipeline must have permission to access secrets (Secret Manager Secret Accesor)
   - id: 'install_and_test'
@@ -43,10 +32,20 @@ steps:
     args:
       - build 
       - '-t'
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:$SHORT_SHA'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:${SHORT_SHA}'
+      - '-t'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:latest'
       - '-f'
       - 'app/backend/agent_api.dockerfile'
       - '.'
+
+
+  - id: 'push_agent_api_image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push 
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}'
+      - '--all-tags'
 
 
 
