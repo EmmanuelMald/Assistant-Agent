@@ -21,7 +21,7 @@ steps:
       - '-c'
       - |
         set -e
-        pip install uv==${UV_VERSION}
+        pip install uv==${_UV_VERSION}
         uv sync --all-groups
         cd tests
         uv run pytest
