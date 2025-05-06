@@ -59,11 +59,9 @@ steps:
 
 
 substitutions:
-  _UV_VERSION: 0.5.4
   _ARTREG_NAME: ai-agents
   _ARTREG_REGION: northamerica-south1
   _AGENTAPI_IMAGNAME: agent_api
-  _CLOUDRUN_REGION: northamerica-south1
 
 
 logsBucket: 'gs://ai_agent_assistant/build_logs'
