@@ -1,7 +1,6 @@
 from pydantic_core import to_jsonable_python
 from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelMessage
 import json
-import re
 
 
 def prepare_to_read_chat_history(chat_history: str) -> list[ModelMessage]:
@@ -39,21 +38,3 @@ def prepare_to_send_chat_history(chat_history: bytes) -> str:
     """
 
     return chat_history.decode("UTF-8")
-
-
-def find_image_urls(text: str) -> list[str]:
-    """
-    Finds image URLs within a given text string.
-
-    Specifically targets URLs pointing to Google Cloud Storage (GCS)
-    and ending with common image file extensions.
-
-    Args:
-        text: str -> The text string to search within.
-
-    Returns:
-        A list of found image URLs (strings). Returns an empty list if none are found.
-    """
-    regex = r"(https://storage\.googleapis\.com/.+\.(?:png|jpg|jpeg|gif|webp|svg))"
-    urls = re.findall(regex, text)
-    return urls
