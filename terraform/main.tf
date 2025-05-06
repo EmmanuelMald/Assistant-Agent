@@ -19,6 +19,11 @@ resource "google_artifact_registry_repository" "ai_agents_artifact_registry" {
       older_than = "10d" # after 10 days untagged, delete the image 
     }
   }
+  # Check documentation for vulnerability scanning
+  # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/artifact_registry_repository.html#nested_vulnerability_scanning_config
+  vulnerability_scanning_config {
+    enablement_config = "DISABLED"
+  }
 }
 
 
@@ -55,8 +60,8 @@ resource "google_cloud_run_v2_service" "agent_api_instance" {
 }
 
 resource "google_cloud_run_v2_service_iam_member" "agent_api_instance_auth" {
-  location = google_cloud_run_v2_service.cloudrun_agent_api_instance.location
-  name     = google_cloud_run_v2_service.cloudrun_agent_api_instance.name
+  location = google_cloud_run_v2_service.agent_api_instance.location
+  name     = google_cloud_run_v2_service.agent_api_instance.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

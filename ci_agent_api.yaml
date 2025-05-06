@@ -13,7 +13,8 @@ steps:
       -target=google_artifact_registry_repository.ai_agents_artifact_registry \
       -auto-approve
 
-
+# As for the tests to succeed requires info from GCP, specially from secret manager
+# The service account that will execute this pipeline must have permission to access secrets
   - id: 'install_and_test'
     name: 'python:${_PYTHON_VERSION}'
     entrypoint: 'bash'
@@ -21,7 +22,7 @@ steps:
       - '-c'
       - |
         set -e
-        pip install uv==${UV_VERSION}
+        pip install uv==${_UV_VERSION}
         uv sync --all-groups
         cd tests
         uv run pytest
@@ -50,8 +51,8 @@ steps:
 
 
 substitutions:
-  _PYTHON_VERSION: 3.11
-  _UV_VERSION: 0.5.4
+  _PYTHON_VERSION: "3.11"
+  _UV_VERSION: "0.5.4"
   _ARTREG_NAME: ai-agents
   _ARTREG_REGION: northamerica-south1
   _AGENTAPI_IMAGNAME: agent_api
