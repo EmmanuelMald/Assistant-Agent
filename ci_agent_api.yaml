@@ -1,7 +1,19 @@
 # The value of the - name parameter (container image or cloud builders) can be obtained from
 # https://cloud.google.com/build/docs/cloud-builders
 steps:
-  
+
+  - id: 'check_artifact_registry_exists'
+    name: 'hashicorp/terraform'
+    entrypoint: 'sh'
+    args: 
+     - '-c'
+     - | 
+      cd terraform
+      terraform init && terraform apply \
+      -target=google_artifact_registry_repository.ai_agents_artifact_registry \
+      -auto-approve
+
+
   - id: 'install_and_test'
     name: 'python:${_PYTHON_VERSION}'
     entrypoint: 'bash'
