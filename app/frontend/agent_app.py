@@ -7,9 +7,13 @@ import requests
 sys.path.append("../..")
 
 
-from assistant_agent.agent_auxiliars import find_image_urls
+from app.frontend.utils import find_image_urls
 from app.frontend.config import BackendInfo
 
+
+# Setting the logs level
+logger.remove()
+logger.add(sys.stderr, level="INFO")
 
 backend_config = BackendInfo()
 
@@ -47,18 +51,22 @@ def main():
         with st.chat_message("user"):
             st.markdown(prompt)
 
+        logger.debug(f"User prompt: {prompt}")
         # Prepare to send the request to the agent API
         try:
             with st.spinner("Agent is thinking..."):
                 # Get the whole chat history
                 previous_formatted_history = st.session_state.formatted_chat_history
+                logger.debug("Chat history obtained")
 
                 payload = {
                     "current_user_prompt": prompt,
                     "chat_history": previous_formatted_history,
                 }
+                logger.debug("Payload created")
 
                 # Calling the agent API
+                logger.info("Sending prompt to the agent...")
                 response = requests.post(url=ask_agent_url, json=payload)
 
                 # Process response
@@ -77,7 +85,7 @@ def main():
 
                         # Find image URLs that the agent retrieved
                         image_urls_found = find_image_urls(agent_response_text)
-                        logger.info(f"Image URLs found: {image_urls_found}")
+                        logger.debug(f"Image URLs found: {image_urls_found}")
 
                         # Show agent response
                         st.session_state.messages.append(
