@@ -14,19 +14,18 @@ RUN pip install --upgrade pip &&\
     pip install uv==${UV_VERSION}
 
 # Create a requirements.txt from the pyproject.toml
-RUN uv export --all-groups --no-hashes -o requirements.txt
+RUN uv export --group agent_ui --no-hashes -o requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
 # Copying all the necessary
-COPY app/. ./app
-COPY ./assistant_agent ./assistant_agent
+COPY app/frontend/. ./app/frontend/
 
 # Move to the app directory to execute uvicorn without errors
-WORKDIR /Assistant-Agent/app/
+WORKDIR /Assistant-Agent/app/frontend/
 
 # Expose the port where the app will listen
 EXPOSE 8501
 
 # Execute the app
-CMD ["streamlit", "run", "agent_app.py"]
+CMD ["streamlit", "run", "agent_ui.py"]

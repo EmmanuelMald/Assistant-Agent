@@ -173,6 +173,13 @@ version = "0.1.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
+agent-ui = [
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "requests" },
+    { name = "streamlit" },
+]
 dev = [
     { name = "fastapi" },
     { name = "google-genai" },
@@ -204,6 +211,13 @@ notebooks = [
 [package.metadata]
 
 [package.metadata.requires-dev]
+agent-ui = [
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.11.3" },
+    { name = "pydantic-settings", specifier = ">=2.9.1" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "streamlit", specifier = ">=1.45.0" },
+]
 dev = [
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "google-genai", specifier = ">=1.12.1" },

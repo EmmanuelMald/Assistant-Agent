@@ -2,8 +2,8 @@ GCP_PROJECT_ID="learned-stone-454021-c8"
 GCP_SA="dev-service-account@learned-stone-454021-c8.iam.gserviceaccount.com"
 GCP_REGION="northamerica-south1"
 ARTIFACT_REGISTRY_NAME="ai-agents"
-AGENT_IMAGE_NAME="$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(ARTIFACT_REGISTRY_NAME)/image-generator-agent:latest"
-AGENT_API_IMAGE_NAME="$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(ARTIFACT_REGISTRY_NAME)/ai_agent_api:latest"
+AGENT_UI_IMAGE_NAME="$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(ARTIFACT_REGISTRY_NAME)/ai_agent_ui:test"
+AGENT_API_IMAGE_NAME="$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(ARTIFACT_REGISTRY_NAME)/ai_agent_api:test"
 
 
 gcloud-auth:
@@ -36,19 +36,22 @@ build-agent-api:
 push-agent-api:
 	docker push $(AGENT_API_IMAGE_NAME)
 
-run-app:
+run-agent-ui:
 	cd app/frontend &&\
-	uv run streamlit run agent_app.py
+	uv run streamlit run agent_ui.py
 
-build-agent-app-image:
-	docker build -f agent_app.dockerfile \
-	-t $(AGENT_IMAGE_NAME) .
+build-agent-ui:
+	cp pyproject.toml uv.lock app/frontend/.
+	docker build \
+	-f app/frontend/agent_ui.dockerfile \
+	-t $(AGENT_UI_IMAGE_NAME) .
+	rm app/frontend/pyproject.toml app/frontend/uv.lock
 
 push-agent-image:
-	docker push $(AGENT_IMAGE_NAME)
+	docker push $(AGENT_UI_IMAGE_NAME)
 
-run-agent-app-container:
-	docker run -p 8501:8501 $(AGENT_IMAGE_NAME)
+run-agent-ui-image:
+	docker run -p 8501:8501 $(AGENT_UI_IMAGE_NAME)
 
 run-tests:
 	cd tests &&\
