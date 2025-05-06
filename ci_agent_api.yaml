@@ -35,11 +35,6 @@ steps:
       - 'app/backend/agent_api.dockerfile'
       - '.'
 
-  - id: 'push_agent_api_image'
-    name: 'gcr.io/cloud-builders/docker'
-    args:
-      - push 
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:$SHORT_SHA'
 
 
 substitutions:
