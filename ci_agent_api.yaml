@@ -1,3 +1,7 @@
+# This CD pipeline is triggered by a Pull Request strategy, meaning that this CI pipeline can be executed whenever needed during the PR
+# by adding the comment '/gcbrun' 
+
+
 # The value of the - name parameter (container image or cloud builders) can be obtained from
 # https://cloud.google.com/build/docs/cloud-builders
 steps:
@@ -27,25 +31,15 @@ steps:
         cp pyproject.toml uv.lock app/backend/.
 
 
-  - id: 'build_agent_api_image'
+  - id: 'validate_docker_build'
     name: 'gcr.io/cloud-builders/docker'
     args:
       - build 
       - '-t'
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:${SHORT_SHA}'
-      - '-t'
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:latest'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:temp'
       - '-f'
       - 'app/backend/agent_api.dockerfile'
       - '.'
-
-
-  - id: 'push_agent_api_image'
-    name: 'gcr.io/cloud-builders/docker'
-    args:
-      - push 
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}'
-      - '--all-tags'
 
 
 
