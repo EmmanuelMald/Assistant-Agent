@@ -30,18 +30,34 @@ model = GeminiModel(
     provider=GoogleGLAProvider(api_key=llm_config.API_KEY.get_secret_value()),
 )
 
-agent = Agent(
-    model,
-    tools=[
-        Tool(generate_prompts, takes_ctx=False),
-        Tool(generate_images, takes_ctx=False),
-    ],
-    system_prompt=system_prompt,
-)
+
+def generate_agent_instance() -> Agent:
+    """
+    For each request, it will generate a new agent instance to avoid concurrency errors
+
+    Args:
+        None
+    Returns:
+        Agent -> Agent instance
+    """
+
+    agent = Agent(
+        model,
+        tools=[
+            Tool(generate_prompts, takes_ctx=False),
+            Tool(generate_images, takes_ctx=False),
+        ],
+        system_prompt=system_prompt,
+    )
+
+    return agent
+
 
 # This will execute the agent on the local console
 if __name__ == "__main__":
     logger.info("Starting Agent chat...")
+    logger.debug("Generating a new agent intance...")
+    agent = generate_agent_instance()
     request = input("Introduce a query (To exit, enter 'exit'):").strip()
     history = []
     while request != "exit":
