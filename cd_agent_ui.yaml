@@ -37,7 +37,7 @@ steps:
       - '-t'
       - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTUI_IMAGNAME}:latest'
       - '-f'
-      - 'app/backend/agent_api.dockerfile'
+      - '${_DOCKERFILE_LOCATION}'
       - '.'
 
 
@@ -60,7 +60,7 @@ steps:
       - '-c'
       - |
         cd terraform
-        terraform apply -var="agent_ui_tag_image=$SHORT_SHA" \
+        terraform apply -var="agent_ui_tag_image=${SHORT_SHA}" \
         -target=google_cloud_run_v2_service.agent_ui_instance \
         -target=google_cloud_run_v2_service_iam_member.agent_ui_instance_auth \
         -auto-approve
@@ -73,6 +73,7 @@ substitutions:
   _ARTREG_NAME: ai-agents
   _ARTREG_REGION: northamerica-south1
   _AGENTUI_IMAGNAME: agent_app
+  _DOCKERFILE_LOCATION: app/frontend/agent_ui.dockerfile
 
 
 logsBucket: 'gs://ai_agent_assistant/build_logs'
