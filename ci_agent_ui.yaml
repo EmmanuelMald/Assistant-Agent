@@ -13,7 +13,7 @@ steps:
     args:
       - '-c' # Execute the following commands in a sequential manner
       - | # Allow to write commands in more than 1 row
-        cp pyproject.toml uv.lock app/backend/.
+        cp pyproject.toml uv.lock ${_DOCKERFILE_LOCATION}/.
 
 
   - id: 'validate_docker_build'
@@ -23,7 +23,7 @@ steps:
       - '-t'
       - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTUI_IMAGNAME}:temp'
       - '-f'
-      - 'app/backend/agent_api.dockerfile'
+      - '${_DOCKERFILE_LOCATION}/${_DOCKERFILE_NAME}'
       - '.'
 
 
@@ -32,6 +32,8 @@ substitutions:
   _ARTREG_NAME: ai-agents
   _ARTREG_REGION: northamerica-south1
   _AGENTUI_IMAGNAME: agent_ui
+  _DOCKERFILE_LOCATION: app/frontend
+  _DOCKERFILE_NAME: agent_ui.dockerfile
 
 
 logsBucket: 'gs://ai_agent_assistant/build_logs'
