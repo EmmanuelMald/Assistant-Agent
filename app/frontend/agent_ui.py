@@ -3,9 +3,7 @@ from loguru import logger
 import sys
 import requests
 
-
 sys.path.append("../..")
-
 
 from app.frontend.utils import find_image_urls
 from app.frontend.config import BackendInfo
