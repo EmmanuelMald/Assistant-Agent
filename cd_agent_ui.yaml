@@ -1,0 +1,83 @@
+# This CD pipeline is triggered by a Push to a branch strategy, meaning that only after a PR has been merge, this 
+# CD will be executed
+
+
+# The value of the - name parameter (container image or cloud builders) can be obtained from
+# https://cloud.google.com/build/docs/cloud-builders
+steps:
+
+  - id: 'check_artifact_registry_exists'
+    name: 'hashicorp/terraform'
+    entrypoint: 'sh'
+    args: 
+     - '-c'
+     - | 
+      cd terraform
+      terraform init && terraform apply \
+      -target=google_artifact_registry_repository.ai_agents_artifact_registry \
+      -auto-approve
+
+
+    # Prepare to test the build of the docker image
+  - id: 'copy_uv_files'
+    name: 'ubuntu'
+    entrypoint: 'sh'
+    args:
+      - '-c' # Execute the following commands in a sequential manner
+      - | # Allow to write commands in more than 1 row
+        cp pyproject.toml uv.lock app/frontend/.
+
+
+  - id: 'build_agent_ui_image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build 
+      - '-t'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTUI_IMAGNAME}:${SHORT_SHA}'
+      - '-t'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTUI_IMAGNAME}:latest'
+      - '-f'
+      - 'app/backend/agent_api.dockerfile'
+      - '.'
+
+
+  - id: 'push_agent_ui_image'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push 
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTUI_IMAGNAME}'
+      - '--all-tags'
+    waitFor: ['check_artifact_registry_exists', 'build_agent_ui_image']
+
+
+  # As for the tests to succeed requires info from GCP, specially from secret manager
+  # The service account that will execute this pipeline must have permission to access secrets (Secret Manager Secret Accesor)
+  # Due to this CD is trigered due to a push to a branch, it will remain the SHORT_SHA of the PR
+  - id: 'deploy_agent_ui_image'
+    name: 'hashicorp/terraform'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cd terraform
+        terraform apply -var="agent_ui_tag_image=$SHORT_SHA" \
+        -target=google_cloud_run_v2_service.agent_ui_instance \
+        -target=google_cloud_run_v2_service_iam_member.agent_ui_instance_auth \
+        -auto-approve
+    waitFor: ['push_agent_ui_image']
+
+        
+
+substitutions:
+
+  _ARTREG_NAME: ai-agents
+  _ARTREG_REGION: northamerica-south1
+  _AGENTUI_IMAGNAME: agent_app
+
+
+logsBucket: 'gs://ai_agent_assistant/build_logs'
+
+
+options:
+  dynamicSubstitutions: true
+  logging: GCS_ONLY
