@@ -6,21 +6,6 @@
 # https://cloud.google.com/build/docs/cloud-builders
 steps:
 
-# As for the tests to succeed requires info from GCP, specially from secret manager
-# The service account that will execute this pipeline must have permission to access secrets (Secret Manager Secret Accesor)
-  - id: 'install_and_test'
-    name: 'python:${_PYTHON_VERSION}'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        set -e
-        pip install uv==${_UV_VERSION}
-        uv sync --all-groups
-        cd tests
-        uv run pytest
-
-
     # Prepare to test the build of the docker image
   - id: 'copy_uv_files'
     name: 'ubuntu'
@@ -36,7 +21,7 @@ steps:
     args:
       - build 
       - '-t'
-      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTAPI_IMAGNAME}:temp'
+      - '${_ARTREG_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTREG_NAME}/${_AGENTUI_IMAGNAME}:temp'
       - '-f'
       - 'app/backend/agent_api.dockerfile'
       - '.'
@@ -44,11 +29,9 @@ steps:
 
 
 substitutions:
-  _PYTHON_VERSION: "3.11"
-  _UV_VERSION: "0.5.4"
   _ARTREG_NAME: ai-agents
   _ARTREG_REGION: northamerica-south1
-  _AGENTAPI_IMAGNAME: agent_api
+  _AGENTUI_IMAGNAME: agent_ui
 
 
 logsBucket: 'gs://ai_agent_assistant/build_logs'
