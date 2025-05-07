@@ -1,4 +1,4 @@
-# This CD pipeline is triggered by a Pull Request strategy, meaning that this CI pipeline can be executed whenever needed during the PR
+# This CI pipeline is triggered by a Pull Request strategy, meaning that this CI pipeline can be executed whenever needed during the PR
 # by adding the comment '/gcbrun' 
 
 
