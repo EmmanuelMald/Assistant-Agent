@@ -33,7 +33,8 @@ model = GeminiModel(
 
 def generate_agent_instance() -> Agent:
     """
-    For each request, it will generate a new agent instance to avoid concurrency errors
+    Generate a new agent instance to avoid concurrency errors
+    during API execution
 
     Args:
         None
