@@ -27,5 +27,5 @@ WORKDIR /Assistant-Agent/app/frontend/
 # Expose the port where the app will listen
 EXPOSE 8501
 
-# Execute the app
+# Execute the app, do not try to open a web browser
 CMD ["streamlit", "run", "agent_ui.py", "--server.port", "8501", "--server.address", "0.0.0.0", "--server.headless", "true"]
