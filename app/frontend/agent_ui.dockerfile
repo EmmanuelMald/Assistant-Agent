@@ -28,4 +28,4 @@ WORKDIR /Assistant-Agent/app/frontend/
 EXPOSE 8501
 
 # Execute the app
-CMD ["streamlit", "run", "agent_ui.py"]
+CMD ["streamlit", "run", "agent_ui.py", "--server.port", "8501", "--server.address", "0.0.0.0", "--server.headless", "true"]
