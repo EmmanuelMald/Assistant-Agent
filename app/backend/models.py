@@ -64,3 +64,9 @@ class User(BaseModel):
         if value not in [None, ""]:
             return value.strip().title()
         return None
+
+
+class UserInDB(BaseModel):
+    hashed_password: Optional[SecretStr] = Field(
+        default=None, description="Hashed password stored in DB"
+    )
