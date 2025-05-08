@@ -75,5 +75,5 @@ class UserInDB(BaseModel):
     @classmethod
     def validate_hashed_password(cls, value):
         if value is None:
-            return ""
+            return SecretStr(None)
         return value
