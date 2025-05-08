@@ -68,5 +68,5 @@ class User(BaseModel):
 
 class UserInDB(BaseModel):
     hashed_password: Optional[SecretStr] = Field(
-        default=None, description="Hashed password stored in DB"
+        description="Hashed password stored in DB"
     )
