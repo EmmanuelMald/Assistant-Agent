@@ -9,6 +9,11 @@ class GCPConfig(BaseSettings):
     BUCKET_NAME: str = "ai_agent_assistant"
     REGION: str = "northamerica-south1"
     GENAI_IMAGES_PATH: str = "genai_images/tmp"
+    BQ_DATASET_ID: str = "ai_agent"
+    USERS_TABLE_NAME: str = "users"
+    USERS_TABLE_PK: str = "user_id"
+    CHAT_SESSIONS_TABLE_NAME: str = "chat_sessions"
+    CHAT_SESSIONS_TABLE_PK: str = "chat_session_id"
 
 
 # check models: https://ai.google.dev/gemini-api/docs/image-generation
