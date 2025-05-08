@@ -70,3 +70,10 @@ class UserInDB(BaseModel):
     hashed_password: Optional[SecretStr] = Field(
         description="Hashed password stored in DB"
     )
+
+    @field_validator("hashed_password", mode="after")
+    @classmethod
+    def validate_hashed_password(cls, value):
+        if value is None:
+            return ""
+        return value
