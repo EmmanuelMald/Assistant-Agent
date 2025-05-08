@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, SecretStr
 from typing import Optional
 import sys
 
@@ -34,6 +34,10 @@ class User(BaseModel):
         default=None,
         description="Role that the user has in the company where he's working on",
         pattern=r"^[^\s].*",  # To not start with a space
+    )
+    password: SecretStr = Field(
+        description="User's password. Must be at least 8 characters long.",
+        min_length=8,
     )
 
     @field_validator("full_name", mode="after")
