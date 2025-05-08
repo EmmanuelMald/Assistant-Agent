@@ -83,3 +83,21 @@ variable "agent_ui_port" {
   description = "Port where the container will listen"
   default     = 8501
 }
+
+variable "dataset_id" {
+  type        = string
+  description = "Name of the BigQuery dataset where all the data will be stored. Is like the schema of any other relational DB"
+  default     = "ai_agent"
+}
+
+variable "users_table_id" {
+  type        = string
+  description = "Name of the users table"
+  default     = "users"
+}
+
+variable "chat_sessions_table_id" {
+  type        = string
+  description = "Name of the users table"
+  default     = "chat_sessions"
+}
