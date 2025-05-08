@@ -157,7 +157,7 @@ resource "google_bigquery_table" "ai_agent_users_table" {
   {
     "name": "email",
     "type": "STRING",
-    "mode": "NULLABLE",
+    "mode": "REQUIRED",
     "description": "Email of the user"
   },
   {
