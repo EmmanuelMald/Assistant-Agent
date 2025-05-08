@@ -180,19 +180,21 @@ agent-ui = [
     { name = "requests" },
     { name = "streamlit" },
 ]
-dev = [
+auth = [
     { name = "bcrypt" },
+    { name = "passlib" },
+    { name = "pyjwt", extra = ["crypto"] },
+]
+dev = [
     { name = "email-validator" },
     { name = "fastapi" },
     { name = "google-genai" },
     { name = "httpx" },
     { name = "loguru" },
-    { name = "passlib" },
     { name = "pillow" },
     { name = "pydantic" },
     { name = "pydantic-ai" },
     { name = "pydantic-settings" },
-    { name = "pyjwt", extra = ["crypto"] },
     { name = "pytest" },
     { name = "requests" },
     { name = "streamlit" },
@@ -222,19 +224,21 @@ agent-ui = [
     { name = "requests", specifier = ">=2.32.3" },
     { name = "streamlit", specifier = ">=1.45.0" },
 ]
-dev = [
+auth = [
     { name = "bcrypt", specifier = ">=4.3.0" },
+    { name = "passlib", specifier = ">=1.7.4" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10.1" },
+]
+dev = [
     { name = "email-validator", specifier = ">=2.2.0" },
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "google-genai", specifier = ">=1.12.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "passlib", specifier = ">=1.7.4" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "pydantic", specifier = ">=2.11.3" },
     { name = "pydantic-ai", specifier = ">=0.1.8" },
     { name = "pydantic-settings", specifier = ">=2.9.1" },
-    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10.1" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "streamlit", specifier = ">=1.45.0" },
