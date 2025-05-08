@@ -31,4 +31,4 @@ class AuthConfig(BaseSettings):
     SECRET_ID: str = "FASTAPI_SECRET_KEY"
     SECRET_VERSION: str = "1"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 60
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
