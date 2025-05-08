@@ -173,7 +173,7 @@ resource "google_bigquery_table" "ai_agent_users_table" {
     "description": "Last time the user entered the chatbot"
   },
   {
-    "name": "hashed_password"
+    "name": "hashed_password",
     "type": "STRING",
     "mode": "REQUIRED",
     "description": "Hashed password"
