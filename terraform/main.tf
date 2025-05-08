@@ -139,7 +139,7 @@ resource "google_bigquery_table" "ai_agent_users_table" {
   {
     "name": "company_name",
     "type": "STRING",
-    "mode": "REQUIRED",
+    "mode": "NULLABLE",
     "description": "Company where the user works"
   },
   {
