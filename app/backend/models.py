@@ -19,19 +19,25 @@ class AgentResponse(BaseModel):
 
 
 class User(BaseModel):
+    """
+    This class will receive the data obtained when the user logs by the first time or
+    when trying to login
+    """
+
     full_name: str = Field(
+        default=None,  # Only in case this field is not passed
         description="Full name of the user",
         min_length=1,
         pattern=r"^[^\s].*",  # To not start with a space
     )
     company_name: Optional[str] = Field(
-        default=None,
+        default=None,  # Only in case this field is not passed
         description="Name of the company where the user works for",
         pattern=r"^[^\s].*",  # To not start with a space
     )
     email: EmailStr = Field(description="User's email")
     company_role: Optional[str] = Field(
-        default=None,
+        default=None,  # Only in case this field is not passed
         description="Role that the user has in the company where he's working on",
         pattern=r"^[^\s].*",  # To not start with a space
     )
