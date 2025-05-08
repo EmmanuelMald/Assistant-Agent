@@ -7,7 +7,7 @@ sys.path.append("../..")
 
 from app.backend.models import AgentRequest, AgentResponse
 from assistant_agent.agent import generate_agent_instance
-from assistant_agent.agent_auxiliars import (
+from assistant_agent.auxiliars.agent_auxiliars import (
     prepare_to_read_chat_history,
     prepare_to_send_chat_history,
 )
