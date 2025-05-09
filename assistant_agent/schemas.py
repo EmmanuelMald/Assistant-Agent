@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, EmailStr, field_validator, SecretStr
 from typing import Optional
 
 
-class User(BaseModel):
+class User(BaseModel, validate_assignment=True):
     """
     This class will receive the data obtained when the user logs by the first time or
     when trying to login
