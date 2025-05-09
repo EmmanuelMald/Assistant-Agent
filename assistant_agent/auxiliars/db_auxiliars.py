@@ -6,7 +6,7 @@ import sys
 
 sys.path.append("../..")
 
-from app.backend.models import UserInDB, User
+from assistant_agent.schemas import UserInDB, User
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.config import GCPConfig
 

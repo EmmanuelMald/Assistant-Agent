@@ -7,7 +7,7 @@ import sys
 sys.path.append("../..")
 
 from assistant_agent.auxiliars.auth_auxiliars import verify_password
-from app.backend.models import UserInDB
+from assistant_agent.schemas import UserInDB
 from assistant_agent.auxiliars.db_auxiliars import user_in_db
 from assistant_agent.credentials import get_auth_config
 
