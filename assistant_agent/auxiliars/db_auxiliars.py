@@ -47,3 +47,29 @@ def user_in_db(email: str, table_id: str = gcp_config.USERS_TABLE_NAME) -> UserI
         return UserInDB(hashed_password=user_id[0])
 
     return UserInDB(hashed_password=None)
+
+
+def generate_user_id(table_id: str = gcp_config.USERS_TABLE_NAME) -> str:
+    """
+    Generates a new user id based on the current users registered in the DB
+
+    Args:
+        table_id: str -> Name of the table that contains the user's email
+
+    Returns:
+    """
+    query_count_users = f"""
+            select
+                count(*) as total_users
+            from {project_id}.{dataset_id}.{table_id}
+    """
+
+    # Query the BigQuery database to get the total number of users
+    rows = query_data(query=query_count_users)
+    total_users = [row.total_users for row in rows][0]
+
+    # Generating the user ID
+    next_id = total_users + 1
+    user_id = f"UID{next_id:05d}"
+
+    return user_id
