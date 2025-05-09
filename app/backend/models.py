@@ -16,3 +16,8 @@ class AgentRequest(BaseModel):
 class AgentResponse(BaseModel):
     agent_response: str = Field(description="Agent response")
     current_history: str = Field(description="Whole chat session history")
+
+
+class UserRegistrationResponse(BaseModel):
+    user_id: str
+    message: str
