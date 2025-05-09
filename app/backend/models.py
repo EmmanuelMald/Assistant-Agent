@@ -18,7 +18,7 @@ class AgentResponse(BaseModel):
     current_history: str = Field(description="Whole chat session history")
 
 
-class User(BaseModel):
+class User(BaseModel, validate_assignment=True):
     """
     This class will receive the data obtained when the user logs by the first time or
     when trying to login
