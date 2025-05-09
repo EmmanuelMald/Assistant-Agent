@@ -217,7 +217,7 @@ resource "google_bigquery_table" "ai_agent_chat_sessions_table" {
     "name": "last_used_at",
     "type": "TIMESTAMP",
     "mode": "REQUIRED",
-    "description": "Id of the LLM used"
+    "description": "Timestamp of when was the last time the user accessed the chat session"
   },
   {
     "name": "session_history",
