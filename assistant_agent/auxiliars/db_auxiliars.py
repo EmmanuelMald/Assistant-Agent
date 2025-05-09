@@ -107,7 +107,7 @@ def insert_user_data(user_data: User, table_id=gcp_config.USERS_TABLE_NAME) -> s
         "company_role": user_data.company_role,
         "created_at": current_time,
         "last_entered_at": current_time,
-        "hashed_password": user_data.password,  # Supposing that password is already hashed
+        "hashed_password": user_data.password.get_secret_value(),  # Supposing that password is already hashed
     }
 
     # Insert the data into the BigQuery table
