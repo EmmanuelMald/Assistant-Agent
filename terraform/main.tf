@@ -106,3 +106,125 @@ resource "google_cloud_run_v2_service_iam_member" "agent_ui_instance_auth" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+############### BIGQUERY ###############
+resource "google_bigquery_dataset" "ai_agent_dataset" {
+  dataset_id  = var.dataset_id
+  description = "The datasets in Bigquery can be considered as schemas in any other structured database. So this is the schema for the tables."
+  location    = var.gcp_region
+
+  labels = {
+    env = "default"
+  }
+}
+
+resource "google_bigquery_table" "ai_agent_users_table" {
+  dataset_id = google_bigquery_dataset.ai_agent_dataset.dataset_id
+  table_id   = var.users_table_id
+
+  labels = {
+    env         = "default"
+    primary_key = "user_id"
+  }
+
+  schema = <<EOF
+
+[
+  {
+    "name": "user_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "User identifier"
+  },
+  {
+    "name": "company_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Company where the user works"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Timestamp when the user was created"
+  },
+  {
+   "name": "full_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Full name of the user"
+  },
+  {
+    "name": "email",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Email of the user"
+  },
+  {
+    "name": "company_role",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Role of the user in the company"
+  },
+  {
+    "name": "last_entered_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Last time the user entered the chatbot"
+  },
+  {
+    "name": "hashed_password",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Hashed password"
+  }
+]
+EOF
+}
+
+
+
+resource "google_bigquery_table" "ai_agent_chat_sessions_table" {
+  dataset_id = google_bigquery_dataset.ai_agent_dataset.dataset_id
+  table_id   = var.chat_sessions_table_id
+
+  labels = {
+    env = "default"
+  }
+
+  schema = <<EOF
+
+[
+  {
+    "name": "session_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the chat session"
+  },
+  {
+    "name": "user_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the user who started the chat session"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Timestamp when the chat session was created"
+  },
+  {
+    "name": "last_used_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Id of the LLM used"
+  },
+  {
+    "name": "session_history",
+    "type": "JSON",
+    "mode": "REQUIRED",
+    "description": "Chat history of the session. To be introduced to the LLM as history context"
+  }
+]
+EOF
+}

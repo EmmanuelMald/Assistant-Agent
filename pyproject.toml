@@ -8,6 +8,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "email-validator>=2.2.0",
     "fastapi>=0.115.12",
     "google-genai>=1.12.1",
     "httpx>=0.28.1",
@@ -40,4 +41,9 @@ agent-ui = [
     "pydantic-settings>=2.9.1",
     "requests>=2.32.3",
     "streamlit>=1.45.0",
+]
+auth = [
+    "bcrypt>=4.3.0",
+    "passlib>=1.7.4",
+    "pyjwt[crypto]>=2.10.1",
 ]
