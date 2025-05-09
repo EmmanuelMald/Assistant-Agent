@@ -55,7 +55,7 @@ async def agent_request(request: AgentRequest):
 def add_user(user_data: User, response: Response):
     try:
         user_id = register_new_user(user_data=user_data)
-        response.headers["Location"] = f"users/{user_id}"
+        response.headers["Location"] = f"/users/{user_id}"
     except ValueError as ve:
         if "email is already registered" in str(ve).lower():
             logger.warning(f"Conflict during user registration: {ve}")
