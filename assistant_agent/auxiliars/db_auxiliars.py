@@ -1,6 +1,7 @@
 from loguru import logger
 from datetime import datetime
 from pydantic import SecretStr
+import re
 
 import sys
 
@@ -74,6 +75,40 @@ def generate_user_id(table_id: str = gcp_config.USERS_TABLE_NAME) -> str:
     user_id = f"UID{next_id:05d}"
 
     return user_id
+
+
+def generate_chat_session_id(
+    user_id: str, table_id=gcp_config.CHAT_SESSIONS_TABLE_NAME
+) -> str:
+    """
+    Generates one session id that the user will have access to.
+
+    Args:
+        user_id: str -> Id of the user who started the session
+        table_id: str -> Name of the table that will store the chat session
+
+    Returns:
+        chat_session_id: str -> Id of the chat session
+    """
+    query_number_sessions = f"""
+        select
+            count(*) as total_sessions
+        from {project_id}.{dataset_id}.{table_id}
+        where user_id = '{user_id}'
+    """
+
+    query_result_iterator = query_data(query_number_sessions)
+    total_user_sessions = [x.total_sessions for x in query_result_iterator][0]
+
+    next_id = total_user_sessions + 1
+
+    # Extracting the user number from the user_id to generate a session_id
+    match = re.search(r"\d+", user_id)
+    user_number = int(match.group(0))
+
+    chat_session_id = f"CSID{user_number}-{next_id:03d}"
+
+    return chat_session_id
 
 
 def insert_user_data(user_data: User, table_id=gcp_config.USERS_TABLE_NAME) -> str:
