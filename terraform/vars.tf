@@ -98,6 +98,18 @@ variable "users_table_id" {
 
 variable "chat_sessions_table_id" {
   type        = string
-  description = "Name of the users table"
+  description = "Name of the BigQuery table that contains the chat sessions"
   default     = "chat_sessions"
+}
+
+variable "prompts_table_id" {
+  type        = string
+  description = "Name of the BigQuery table that contains the prompts of the chats"
+  default     = "prompts"
+}
+
+variable "agent_steps_table_id" {
+  type        = string
+  description = "Name of the BigQuery table that contains the prompts of the chats"
+  default     = "agent_steps"
 }
