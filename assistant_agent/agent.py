@@ -13,6 +13,10 @@ from assistant_agent.tools.image_generator import generate_prompts, generate_ima
 llm_config = get_llm_config()
 gcp_config = GCPConfig()
 
+# Setting the logs level
+logger.remove()
+logger.add(sys.stderr, level="DEBUG")
+
 system_prompt = (
     "You are a specialized AI assistant that helps users generate images and automatically stores them in Google Cloud Storage (GCS) based on their ideas."
     " You have access to the following tools:\n"
@@ -64,5 +68,7 @@ if __name__ == "__main__":
     while request != "exit":
         result = agent.run_sync(request, message_history=history)
         history = result.all_messages()
+        history_json = result.all_messages_json()
+        logger.debug(f"{history_json=}")
         logger.info(f"{result.output}")
         request = input("Introduce a query (To exit, enter 'exit'):").strip()
