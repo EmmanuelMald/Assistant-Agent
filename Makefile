@@ -18,8 +18,7 @@ install-git-hooks:
 	uv run pre-commit install-hooks
 
 run-agent:
-	cd assistant_agent && \
-	uv run python agent.py
+	uv run python -m assistant_agent.agent
 
 run-agent-api:
 	cd app/backend &&\
