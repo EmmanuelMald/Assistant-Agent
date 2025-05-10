@@ -2,13 +2,10 @@ from loguru import logger
 from pydantic_ai import Agent, Tool
 from pydantic_ai.models.gemini import GeminiModel
 from pydantic_ai.providers.google_gla import GoogleGLAProvider
-import sys
-
-sys.path.append("..")
-
 from assistant_agent.credentials import get_llm_config
 from assistant_agent.config import GCPConfig
 from assistant_agent.tools.image_generator import generate_prompts, generate_images
+import sys
 
 llm_config = get_llm_config()
 gcp_config = GCPConfig()
