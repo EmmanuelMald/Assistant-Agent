@@ -212,18 +212,97 @@ resource "google_bigquery_table" "ai_agent_chat_sessions_table" {
     "type": "TIMESTAMP",
     "mode": "REQUIRED",
     "description": "Timestamp when the chat session was created"
+  }
+]
+EOF
+}
+
+
+resource "google_bigquery_table" "ai_agent_prompts_table" {
+  dataset_id = google_bigquery_dataset.ai_agent_dataset.dataset_id
+  table_id   = var.prompts_table_id
+
+  labels = {
+    env = "default"
+  }
+
+  schema = <<EOF
+
+[
+  {
+    "name": "prompt_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the prompt"
   },
   {
-    "name": "last_used_at",
+    "name": "chat_session_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the chat session"
+  },
+  {
+    "name": "user_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the user who started the chat session"
+  },
+  {
+    "name": "created_at",
     "type": "TIMESTAMP",
     "mode": "REQUIRED",
-    "description": "Timestamp of when was the last time the user accessed the chat session"
+    "description": "Timestamp when the prompt was created"
   },
   {
-    "name": "session_history",
+    "name": "prompt",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "User prompt"
+  },
+  {
+    "name": "response",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "AI Agent prompt"
+  }
+]
+EOF
+}
+
+resource "google_bigquery_table" "ai_agent_steps_table" {
+  dataset_id = google_bigquery_dataset.ai_agent_dataset.dataset_id
+  table_id   = var.agent_steps_table_id
+
+  labels = {
+    env = "default"
+  }
+
+  schema = <<EOF
+
+[
+  {
+    "name": "chat_session_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the chat session"
+  },
+  {
+    "name": "prompt_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of the prompt"
+  },
+  {
+    "name": "step_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Id of agent step"
+  },
+  {
+    "name": "step",
     "type": "JSON",
     "mode": "REQUIRED",
-    "description": "Chat history of the session. To be introduced to the LLM as history context"
+    "description": "Step data"
   }
 ]
 EOF
