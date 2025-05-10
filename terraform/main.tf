@@ -196,7 +196,7 @@ resource "google_bigquery_table" "ai_agent_chat_sessions_table" {
 
 [
   {
-    "name": "session_id",
+    "name": "chat_session_id",
     "type": "STRING",
     "mode": "REQUIRED",
     "description": "Id of the chat session"
