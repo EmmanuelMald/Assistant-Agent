@@ -156,3 +156,46 @@ def insert_user_data(user_data: User, table_id=gcp_config.USERS_TABLE_NAME) -> s
     )
     logger.info("user data successfully added to the database")
     return user_id
+
+
+def insert_chat_session(
+    user_id: str, table_id=gcp_config.CHAT_SESSIONS_TABLE_NAME
+) -> str:
+    """
+    Insert info of the chat session into BigQuery
+
+    Args:
+        user_id: str -> User ID
+        table_id: str -> Name of the BQ table
+
+    Return chat_session_id: str -> chat_session_id
+    """
+    logger.info("Inserting chat session data...")
+
+    chat_session_id = generate_chat_session_id(user_id=user_id)
+
+    # Get the current date and time
+    now = datetime.now()
+    current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
+
+    data_to_insert = {
+        "chat_session_id": chat_session_id,
+        "user_id": user_id,
+        "created_at": current_time,
+        "last_used_at": current_time,
+        "session_history": "[]",
+    }
+
+    # Insert the data into the BigQuery table
+    insert_rows(
+        project_id=project_id,
+        dataset_name=dataset_id,
+        table_name=table_id,
+        rows=[
+            data_to_insert,
+        ],
+    )
+
+    logger.info("chat session data successfully added to the database")
+
+    return chat_session_id
