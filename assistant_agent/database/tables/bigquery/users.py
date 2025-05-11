@@ -43,7 +43,7 @@ class BQUsersTable(BigQueryTable):
 
         return user_id
 
-    def _id_in_table(self, user_id: str) -> bool:
+    def id_in_table(self, user_id: str) -> bool:
         """
         Tells if an email is already on the user's BigQuery table
 
@@ -108,7 +108,7 @@ class BQUsersTable(BigQueryTable):
         Returns:
             str -> hashed password
         """
-        if not self._id_in_table(user_id=user_id):
+        if not self.id_in_table(user_id=user_id):
             raise ValueError("user_id is not in table")
 
         query_password = f"""
