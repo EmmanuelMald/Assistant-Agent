@@ -59,7 +59,7 @@ class BQUsersTable(BigQueryTable):
                 select
                     {self.primary_key}
                 from {self.project_id}.{self.dataset_id}.{self.name}
-                where f{self.primary_key} = '{user_id}'
+                where {self.primary_key} = '{user_id}'
                 """
         logger.debug(f"{query=}")
 
