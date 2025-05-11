@@ -293,7 +293,7 @@ resource "google_bigquery_table" "ai_agent_steps_table" {
     "description": "Id of agent step"
   },
   {
-    "name": "step",
+    "name": "step_data",
     "type": "JSON",
     "mode": "REQUIRED",
     "description": "Step data"
