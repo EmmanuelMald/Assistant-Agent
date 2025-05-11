@@ -21,8 +21,7 @@ run-agent:
 	uv run python -m assistant_agent.agent
 
 run-agent-api:
-	cd app/backend &&\
-	uv run -- uvicorn main:app --reload
+	uv run -- uvicorn app.backend.main:app --reload
 
 build-agent-api:
 	cp pyproject.toml uv.lock app/backend/.
