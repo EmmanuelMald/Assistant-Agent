@@ -11,7 +11,7 @@ from pydantic import SecretStr
 gcp_config = GCPConfig()
 
 
-class UsersTable(BigQueryTable):
+class BQUsersTable(BigQueryTable):
     __name: str = gcp_config.USERS_TABLE_NAME
     __primary_key: str = gcp_config.USERS_TABLE_PK
 
