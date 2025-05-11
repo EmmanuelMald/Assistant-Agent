@@ -1,6 +1,8 @@
-from assistant_agent.database.tables.bigquery.bq_base import BigQueryTable
-from assistant_agent.database.tables.bigquery.users import BQUsersTable
-from assistant_agent.database.tables.bigquery.chat_sessions import BQChatSessionsTable
+from assistant_agent.database.tables.bigquery import (
+    BigQueryTable,
+    BQUsersTable,
+    BQChatSessionsTable,
+)
 from assistant_agent.utils.gcp.bigquery import insert_rows, query_data
 from assistant_agent.config import GCPConfig
 from assistant_agent.schemas import Prompt
