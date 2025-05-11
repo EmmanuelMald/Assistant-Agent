@@ -1,10 +1,5 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from loguru import logger
-
-import sys
-
-sys.path.append("../..")
-
 from app.backend.models import AgentRequest, AgentResponse, UserRegistrationResponse
 from assistant_agent.schemas import User
 from assistant_agent.agent import generate_agent_instance
@@ -22,9 +17,11 @@ async def agent_request(request: AgentRequest):
     logger.debug("Generating new agent instance...")
     agent = generate_agent_instance()
     logger.debug("Agent instance generated successfully")
-    logger.info("Preparing chat history to be read by the agent...")
+
+    logger.debug("Preparing chat history to be read by the agent...")
     chat_history = prepare_to_read_chat_history(request.chat_history)
-    logger.info("History chat session prepared")
+    logger.debug("History chat session prepared")
+
     logger.info("Sending new prompt to the agent...")
     try:
         agent_answer = await agent.run(
