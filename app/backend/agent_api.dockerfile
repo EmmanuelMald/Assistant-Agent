@@ -22,11 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/backend/. ./app/backend/
 COPY ./assistant_agent ./assistant_agent
 
-# Move to the folder where the api will be executed
-WORKDIR /Assistant-Agent/app/backend
-
 # Expose the port where the api will listen
 EXPOSE 8000
 
 # Execute the API
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
