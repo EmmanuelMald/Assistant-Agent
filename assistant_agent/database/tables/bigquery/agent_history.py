@@ -1,7 +1,8 @@
 from .bq_base import BigQueryTable
 from assistant_agent.database.tables.bigquery import BQPromptsTable, BQChatSessionsTable
 from assistant_agent.config import GCPConfig
-from assistant_agent.utils.gcp.bigquery import query_data
+from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
+from assistant_agent.schemas import AgentStep
 from loguru import logger
 import re
 
@@ -85,3 +86,55 @@ class BQAgentStepsTable(BigQueryTable):
         )
 
         return id_exists
+
+    def _insert_row(self, step_data: AgentStep):
+        """
+        Insert the data related to the agent step into BigQuery
+
+        Args:
+            step_data: AgentStep -> Info related to the step
+
+        Returns:
+            str -> step_id
+        """
+        logger.info("Generating step_id...")
+        # _generate_id has error handlers for its parameters
+        step_id = self._generate_id(
+            prompt_id=step_data.prompt_id,
+            chat_session_id=step_data.chat_session_id,
+        )
+
+        logger.info("Inserting data...")
+
+        data_to_insert = {
+            "step_id": step_id,
+            "chat_session_id": step_data.chat_session_id,
+            "prompt_id": step_data.prompt_id,
+            "step_data": step_data.step_data,
+        }
+
+        try:
+            insert_rows(
+                table_name=self.name,
+                dataset_name=self.dataset_id,
+                project_id=self.project_id,
+                rows=[
+                    data_to_insert,
+                ],
+            )
+        except Exception as e:
+            raise ValueError(f"Error while inserting prompt's data into BigQuery: {e}")
+
+        return step_id
+
+    def generate_new_row(self, step_data: AgentStep):
+        """
+        Public method to generate a new row in the agent_steps table
+
+        Args:
+            step_data: AgentStep -> Info related to the step
+
+        Returns:
+            str -> step_id
+        """
+        return self._insert_row(step_data)
