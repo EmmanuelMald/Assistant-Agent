@@ -66,3 +66,14 @@ class UserInDB(BaseModel):
     hashed_password: Optional[SecretStr] = Field(
         description="Hashed password stored in DB"
     )
+
+
+class Prompt(BaseModel, validate_assignment=True):
+    chat_session_id: str = Field(
+        description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
+    )
+    user_id: str = Field(
+        description="Id of the owner of the session", pattern=r"^UID\d{5}$"
+    )
+    prompt: str = Field(description="User's prompt")
+    response: str = Field(description="Agent response")
