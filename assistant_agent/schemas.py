@@ -6,6 +6,7 @@ from pydantic import (
     SecretStr,
 )
 from typing import Optional
+import json
 
 
 class User(BaseModel, validate_assignment=True):
@@ -87,3 +88,8 @@ class AgentStep(BaseModel, validate_assignment=True):
     step_data: dict = Field(
         description="Dictionary with all the data related to the agent's step"
     )
+
+    @field_validator("step_data", mode="after")
+    @classmethod
+    def prepare_json(cls, value):
+        return json.dumps(value)
