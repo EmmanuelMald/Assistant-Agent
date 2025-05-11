@@ -16,7 +16,7 @@ class BQChatSessionsTable(BigQueryTable):
 
     def __init__(self):
         super().__init__()
-        _users_table: str = BQUsersTable()
+        self._users_table: BQUsersTable = BQUsersTable()
 
     @property
     def name(self) -> str:
