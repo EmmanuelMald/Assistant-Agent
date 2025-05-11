@@ -91,14 +91,15 @@ class BQUsersTable(BigQueryTable):
             where email = '{email}'
         """
 
-        query_results = query_data(query_email)
+        rows_iterator = query_data(query_email)
 
-        results_list = [row[self.primary_key] for row in query_results]
-
-        if len(results_list) > 0:
+        try:
+            # Try to get the first element (row) of the rows_iterator
+            next(rows_iterator)
             return True
 
-        return False
+        except StopIteration:  # If the iterator is empty
+            return False
 
     def get_hashed_password(self, user_id: str) -> SecretStr:
         """
