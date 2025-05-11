@@ -65,12 +65,14 @@ class BQUsersTable(BigQueryTable):
 
         rows_iterator = query_data(query)
 
-        user_id = [row[f"{self.primary_key}"] for row in rows_iterator]
-
-        if len(user_id) > 0:
+        try:
+            # Try to get the first element (row) of the rows_iterator
+            next(rows_iterator)
             return True
 
-        return False
+        except StopIteration:  # If the iterator is empty
+            logger.info(f"User ID '{user_id}' not found in table")
+            return False
 
     def _email_in_table(self, email: str) -> bool:
         """
