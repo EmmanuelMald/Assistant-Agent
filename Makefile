@@ -52,5 +52,4 @@ run-agent-ui-image:
 	docker run -p 8501:8501 $(AGENT_UI_IMAGE_NAME)
 
 run-tests:
-	cd tests &&\
 	uv run pytest
