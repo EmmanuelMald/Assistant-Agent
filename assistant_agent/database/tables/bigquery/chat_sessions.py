@@ -74,7 +74,7 @@ class BQChatSessionsTable(BigQueryTable):
         Returns:
             bool -> True if the session exists
         """
-        id_exists = super().id_in_table(
+        id_exists = super()._id_in_table(
             primary_key_row_value=chat_session_id,
             primary_key_column_name=self.primary_key,
             table_name=self.name,

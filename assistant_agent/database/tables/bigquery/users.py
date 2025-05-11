@@ -54,7 +54,7 @@ class BQUsersTable(BigQueryTable):
             bool -> True if the user already exists
         """
         logger.info("Verifying if the user is already registered...")
-        id_exists = super().id_in_table(
+        id_exists = super()._id_in_table(
             primary_key_column_name=self.primary_key,
             primary_key_row_value=user_id,
             table_name=self.name,

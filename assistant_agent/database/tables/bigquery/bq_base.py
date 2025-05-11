@@ -17,7 +17,7 @@ class BigQueryTable(Table):
     def dataset_id(self):
         return self.__dataset_id
 
-    def id_in_table(
+    def _id_in_table(
         self, primary_key_row_value: str, primary_key_column_name: str, table_name: str
     ) -> bool:
         """
