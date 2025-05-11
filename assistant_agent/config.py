@@ -17,7 +17,7 @@ class GCPConfig(BaseSettings):
     PROMPTS_TABLE_NAME: str = "prompts"
     PROMPTS_TABLE_PK: str = "prompt_id"
     AGENT_STEPS_TABLE_NAME: str = "agent_steps"
-    AGENT_STEPS_TABLE_PK: str = "table_pk"
+    AGENT_STEPS_TABLE_PK: str = "step_id"
 
 
 # check models: https://ai.google.dev/gemini-api/docs/image-generation
