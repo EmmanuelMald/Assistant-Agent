@@ -161,7 +161,7 @@ class UsersTable(BigQueryTable):
         try:
             insert_rows(
                 table_name=self.name,
-                dataset_name=self.name,
+                dataset_name=self.dataset_id,
                 project_id=self.project_id,
                 rows=[
                     data_to_insert,
