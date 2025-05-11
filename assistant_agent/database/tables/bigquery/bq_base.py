@@ -1,4 +1,4 @@
-from assistant_agent.database.tables.base import Table
+from assistant_agent.database.tables import Table
 from assistant_agent.config import GCPConfig
 from assistant_agent.utils.gcp.bigquery import query_data
 
