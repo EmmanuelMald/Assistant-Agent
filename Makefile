@@ -18,12 +18,10 @@ install-git-hooks:
 	uv run pre-commit install-hooks
 
 run-agent:
-	cd assistant_agent && \
-	uv run python agent.py
+	uv run python -m assistant_agent.agent
 
 run-agent-api:
-	cd app/backend &&\
-	uv run -- uvicorn main:app --reload
+	uv run -- uvicorn app.backend.main:app --reload
 
 build-agent-api:
 	cp pyproject.toml uv.lock app/backend/.
@@ -54,5 +52,4 @@ run-agent-ui-image:
 	docker run -p 8501:8501 $(AGENT_UI_IMAGE_NAME)
 
 run-tests:
-	cd tests &&\
 	uv run pytest

@@ -1,8 +1,15 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator, SecretStr
+from pydantic import (
+    BaseModel,
+    Field,
+    EmailStr,
+    field_validator,
+    SecretStr,
+)
 from typing import Optional
+import json
 
 
-class User(BaseModel):
+class User(BaseModel, validate_assignment=True):
     """
     This class will receive the data obtained when the user logs by the first time or
     when trying to login
@@ -50,7 +57,39 @@ class User(BaseModel):
         return None
 
 
+class ChatSession(BaseModel, validate_assignment=True):
+    user_id: str = Field(
+        description="Id of the owner of the session", pattern=r"^UID\d{5}$"
+    )
+
+
 class UserInDB(BaseModel):
     hashed_password: Optional[SecretStr] = Field(
         description="Hashed password stored in DB"
     )
+
+
+class Prompt(BaseModel, validate_assignment=True):
+    chat_session_id: str = Field(
+        description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
+    )
+    user_id: str = Field(
+        description="Id of the owner of the session", pattern=r"^UID\d{5}$"
+    )
+    prompt: str = Field(description="User's prompt", pattern=r"^\w.*", min_length=1)
+    response: str = Field(description="Agent response", pattern=r"^\w.*", min_length=1)
+
+
+class AgentStep(BaseModel, validate_assignment=True):
+    chat_session_id: str = Field(
+        description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
+    )
+    prompt_id: str = Field(description="ID of the prompt", pattern=r"^PID\d{6}")
+    step_data: dict = Field(
+        description="Dictionary with all the data related to the agent's step"
+    )
+
+    @field_validator("step_data", mode="after")
+    @classmethod
+    def prepare_json(cls, value):
+        return json.dumps(value)

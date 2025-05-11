@@ -14,6 +14,10 @@ class GCPConfig(BaseSettings):
     USERS_TABLE_PK: str = "user_id"
     CHAT_SESSIONS_TABLE_NAME: str = "chat_sessions"
     CHAT_SESSIONS_TABLE_PK: str = "chat_session_id"
+    PROMPTS_TABLE_NAME: str = "prompts"
+    PROMPTS_TABLE_PK: str = "prompt_id"
+    AGENT_STEPS_TABLE_NAME: str = "agent_steps"
+    AGENT_STEPS_TABLE_PK: str = "step_id"
 
 
 # check models: https://ai.google.dev/gemini-api/docs/image-generation

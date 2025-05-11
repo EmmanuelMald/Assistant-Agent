@@ -1,14 +1,9 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from loguru import logger
-
-import sys
-
-sys.path.append("../..")
-
 from app.backend.models import AgentRequest, AgentResponse, UserRegistrationResponse
 from assistant_agent.schemas import User
 from assistant_agent.agent import generate_agent_instance
-from assistant_agent.database import register_new_user
+from assistant_agent.database.tables.bigquery import BQUsersTable
 from assistant_agent.auxiliars.agent_auxiliars import (
     prepare_to_read_chat_history,
     prepare_to_send_chat_history,
@@ -22,9 +17,11 @@ async def agent_request(request: AgentRequest):
     logger.debug("Generating new agent instance...")
     agent = generate_agent_instance()
     logger.debug("Agent instance generated successfully")
-    logger.info("Preparing chat history to be read by the agent...")
+
+    logger.debug("Preparing chat history to be read by the agent...")
     chat_history = prepare_to_read_chat_history(request.chat_history)
-    logger.info("History chat session prepared")
+    logger.debug("History chat session prepared")
+
     logger.info("Sending new prompt to the agent...")
     try:
         agent_answer = await agent.run(
@@ -53,11 +50,16 @@ async def agent_request(request: AgentRequest):
     response_model=UserRegistrationResponse,
 )
 def add_user(user_data: User, response: Response):
+    logger.debug("Connecting to the database...")
+    users_table = BQUsersTable()
+    logger.debug("Users table successfully connected")
+
     try:
-        user_id = register_new_user(user_data=user_data)
+        user_id = users_table.generate_new_row(user_data)
         response.headers["Location"] = f"/users/{user_id}"
+
     except ValueError as ve:
-        if "email is already registered" in str(ve).lower():
+        if "user is already registered" in str(ve).lower():
             logger.warning(f"Conflict during user registration: {ve}")
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(ve))
         else:

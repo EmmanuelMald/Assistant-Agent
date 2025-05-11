@@ -1,14 +1,9 @@
 from loguru import logger
 from google import genai
 from google.genai import types
-
-# from PIL import Image
 from io import BytesIO
 import asyncio
 import sys
-
-sys.path.append("../..")
-
 from assistant_agent.utils.gcp.gcs import upload_image_from_memory
 from assistant_agent.credentials import get_llm_config
 from assistant_agent.config import GCPConfig
