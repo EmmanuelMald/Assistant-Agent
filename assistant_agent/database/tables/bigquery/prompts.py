@@ -10,7 +10,7 @@ from datetime import datetime
 gcp_config = GCPConfig()
 
 
-class BQPrompsTable(BigQueryTable):
+class BQPromptsTable(BigQueryTable):
     __name: str = gcp_config.PROMPTS_TABLE_NAME
     __primary_key: str = gcp_config.PROMPTS_TABLE_PK
 
