@@ -75,5 +75,5 @@ class Prompt(BaseModel, validate_assignment=True):
     user_id: str = Field(
         description="Id of the owner of the session", pattern=r"^UID\d{5}$"
     )
-    prompt: str = Field(description="User's prompt")
-    response: str = Field(description="Agent response")
+    prompt: str = Field(description="User's prompt", pattern=r"^\w.*", min_length=1)
+    response: str = Field(description="Agent response", pattern=r"^\w.*", min_length=1)
