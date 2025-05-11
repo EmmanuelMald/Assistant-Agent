@@ -77,3 +77,13 @@ class Prompt(BaseModel, validate_assignment=True):
     )
     prompt: str = Field(description="User's prompt", pattern=r"^\w.*", min_length=1)
     response: str = Field(description="Agent response", pattern=r"^\w.*", min_length=1)
+
+
+class AgentStep(BaseModel, validate_assignment=True):
+    chat_session_id: str = Field(
+        description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
+    )
+    prompt_id: str = Field(description="ID of the prompt", pattern=r"^PID\d{6}")
+    step_data: dict = Field(
+        description="Dictionary with all the data related to the agent's step"
+    )
