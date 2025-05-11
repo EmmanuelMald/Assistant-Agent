@@ -74,22 +74,13 @@ class BQChatSessionsTable(BigQueryTable):
         Returns:
             bool -> True if the session exists
         """
-        query = f"""
-            select
-                {self.primary_key}
-            from {self.project_id}.{self.dataset_id}.{self.name}
-            where {self.primary_key} = '{chat_session_id}'
-        """
+        id_exists = super().id_in_table(
+            primary_key_row_value=chat_session_id,
+            primary_key_column_name=self.primary_key,
+            table_name=self.name,
+        )
 
-        rows_iterator = query_data(query)
-
-        try:
-            # Try to get the first element (row) of the rows_iterator
-            next(rows_iterator)
-            return True
-
-        except StopIteration:  # If the iterator is empty
-            return False
+        return id_exists
 
     def _insert_row(self, session_info: ChatSession) -> str:
         """

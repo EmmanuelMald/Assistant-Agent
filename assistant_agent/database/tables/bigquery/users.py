@@ -54,25 +54,13 @@ class BQUsersTable(BigQueryTable):
             bool -> True if the user already exists
         """
         logger.info("Verifying if the user is already registered...")
+        id_exists = super().id_in_table(
+            primary_key_column_name=self.primary_key,
+            primary_key_row_value=user_id,
+            table_name=self.name,
+        )
 
-        query = f"""
-                select
-                    {self.primary_key}
-                from {self.project_id}.{self.dataset_id}.{self.name}
-                where {self.primary_key} = '{user_id}'
-                """
-        logger.debug(f"{query=}")
-
-        rows_iterator = query_data(query)
-
-        try:
-            # Try to get the first element (row) of the rows_iterator
-            next(rows_iterator)
-            return True
-
-        except StopIteration:  # If the iterator is empty
-            logger.info(f"User ID '{user_id}' not found in table")
-            return False
+        return id_exists
 
     def _email_in_table(self, email: str) -> bool:
         """
