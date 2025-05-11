@@ -133,7 +133,6 @@ class BQUsersTable(BigQueryTable):
 
         Args:
             user_data: User -> User class containing the user information
-            table_id (str): The name of the BigQuery table.
 
         Returns:
             str -> user_id that was inserted into the BigQuery table.
