@@ -29,7 +29,7 @@ class BigQueryTable(Table):
             table_name: str -> Name of the table to query
 
         Returns:
-            bool -> True if the
+            bool -> True if the id exists in the table
         """
         query = f"""
             select
