@@ -38,7 +38,7 @@ class BQChatSessionsTable(BigQueryTable):
 
         """
         if not self._users_table.user_exists(user_id):
-            raise ValueError("The user_id inserted is not valid")
+            raise ValueError("The user_id does not exists")
 
         query = f"""
                 select
