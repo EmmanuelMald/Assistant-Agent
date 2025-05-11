@@ -74,6 +74,7 @@ class BQChatSessionsTable(BigQueryTable):
         Returns:
             bool -> True if the session exists
         """
+        logger.info("Verifying if the chat session is already registered...")
         id_exists = super()._id_in_table(
             primary_key_row_value=chat_session_id,
             primary_key_column_name=self.primary_key,
