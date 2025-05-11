@@ -65,3 +65,23 @@ class BQAgentStepsTable(BigQueryTable):
         logger.info(f"{step_id = }")
 
         return step_id
+
+    def step_exists(self, step_id: str) -> bool:
+        """
+        Public method to know if a step_id exists in the
+        BigQuery table.
+
+        Args:
+            step_id: str -> Id of the step
+
+        Returns:
+            bool -> True if the step exists, False otherwise
+        """
+        logger.info("Verifying if the step_id is already registered...")
+        id_exists = super()._id_in_table(
+            primary_key_column_name=self.primary_key,
+            primary_key_row_value=step_id,
+            table_name=self.name,
+        )
+
+        return id_exists

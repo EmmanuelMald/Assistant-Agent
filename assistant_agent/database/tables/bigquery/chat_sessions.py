@@ -64,15 +64,16 @@ class BQChatSessionsTable(BigQueryTable):
 
         return chat_session_id
 
-    def _id_in_table(self, chat_session_id: str) -> bool:
+    def session_exists(self, chat_session_id: str) -> bool:
         """
-        Defines if a chat_session_id exists in the BigQuery table
+        Public method to know if a chat_session_id exists in the
+        BigQuery table.
 
         Args:
-            chat_session_id: str
+            chat_session_id: str -> Id of the chat session
 
         Returns:
-            bool -> True if the session exists
+            bool -> True if the session exists, False otherwise
         """
         logger.info("Verifying if the chat session is already registered...")
         id_exists = super()._id_in_table(
@@ -138,16 +139,3 @@ class BQChatSessionsTable(BigQueryTable):
             chat_session_id: str -> Id of the chat session generated
         """
         return self._insert_row(session_info)
-
-    def session_exists(self, chat_session_id: str) -> bool:
-        """
-        Public method to know if a chat_session_id exists in the
-        BigQuery table.
-
-        Args:
-            chat_session_id: str -> Id of the chat session
-
-        Returns:
-            bool -> True if the session exists, False otherwise
-        """
-        return self._id_in_table(chat_session_id)

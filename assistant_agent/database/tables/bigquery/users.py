@@ -43,15 +43,16 @@ class BQUsersTable(BigQueryTable):
 
         return user_id
 
-    def _id_in_table(self, user_id: str) -> bool:
+    def user_exists(self, user_id: str) -> bool:
         """
-        Tells if an email is already on the user's BigQuery table
+        Public method to know if a user_id exists in the
+        BigQuery table.
 
         Args:
-            user_id: str -> User ID
+            user_id: str -> Id of the user
 
         Returns:
-            bool -> True if the user already exists
+            bool -> True if the user exists, False otherwise
         """
         logger.info("Verifying if the user is already registered...")
         id_exists = super()._id_in_table(
@@ -187,16 +188,3 @@ class BQUsersTable(BigQueryTable):
         logger.info(f"{user_id = }")
 
         return user_id
-
-    def user_exists(self, user_id: str) -> bool:
-        """
-        Public method to know if a user_id exists in the
-        BigQuery table.
-
-        Args:
-            user_id: str -> Id of the user
-
-        Returns:
-            bool -> True if the user exists, False otherwise
-        """
-        return self._id_in_table(user_id=user_id)

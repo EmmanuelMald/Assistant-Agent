@@ -63,15 +63,15 @@ class BQPromptsTable(BigQueryTable):
 
         return prompt_id
 
-    def _id_in_table(self, prompt_id: str) -> bool:
+    def prompt_exists(self, prompt_id: str) -> bool:
         """
-        Defines if a prompt_id exists in the BigQuery table
+        Public method to know if a prompt exists in the DB
 
         Args:
-            prompt_id
+            prompt_id -> ID of the prompt
 
         Returns:
-            bool -> True if the prompt_id exists
+            bool -> True if the prompt exists, otherwise False
         """
         id_exists = super()._id_in_table(
             primary_key_column_name=self.primary_key,
@@ -139,15 +139,3 @@ class BQPromptsTable(BigQueryTable):
             str -> prompt_id
         """
         return self._insert_row(prompt_data)
-
-    def prompt_exists(self, prompt_id: str) -> bool:
-        """
-        Public method to know if a prompt exists in the DB
-
-        Args:
-            prompt_id -> ID of the prompt
-
-        Returns:
-            bool -> True if the prompt exists, otherwise False
-        """
-        return self._id_in_table(prompt_id)
