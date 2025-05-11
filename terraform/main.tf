@@ -167,12 +167,6 @@ resource "google_bigquery_table" "ai_agent_users_table" {
     "description": "Role of the user in the company"
   },
   {
-    "name": "last_entered_at",
-    "type": "TIMESTAMP",
-    "mode": "REQUIRED",
-    "description": "Last time the user entered the chatbot"
-  },
-  {
     "name": "hashed_password",
     "type": "STRING",
     "mode": "REQUIRED",
