@@ -1,10 +1,6 @@
 from fastapi.testclient import TestClient
 from fastapi import status
 import uuid
-import sys
-
-sys.path.append("..")
-
 from app.backend.main import app
 from app.frontend.config import BackendInfo
 
@@ -59,13 +55,17 @@ def test_add_user_conflict_email_already_registered():
     """
     # testing email and password
     existing_user_email = "testinguser@examplemail.com"  # already exists
-    user_payload = {"email": existing_user_email, "password": "SecurePassword123"}
+    user_payload = {
+        "email": existing_user_email,
+        "password": "SecurePassword123",
+        "full_name": "Testing User 0",
+    }
 
     response = client.post("/add_user", json=user_payload)
     response_data = response.json()
     assert response.status_code == status.HTTP_409_CONFLICT
     assert "detail" in response_data
-    assert "The email is already registered" in response_data["detail"]
+    assert "user is already registered" in response_data["detail"]
 
 
 def test_add_user_invalid_email_format():
