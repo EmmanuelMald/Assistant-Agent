@@ -21,3 +21,8 @@ class AgentResponse(BaseModel):
 class UserRegistrationResponse(BaseModel):
     user_id: str
     message: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
