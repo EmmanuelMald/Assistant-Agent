@@ -111,9 +111,9 @@ class BQUsersTable(BigQueryTable):
             where {self.primary_key} = '{user_id}'
         """
 
-        query_result = query_data(query=query_password)
+        rows_iterator = query_data(query=query_password)
 
-        hashed_password = [SecretStr(row.hashed_password) for row in query_result][0]
+        hashed_password = SecretStr(next(rows_iterator).hashed_password)
 
         return hashed_password
 
