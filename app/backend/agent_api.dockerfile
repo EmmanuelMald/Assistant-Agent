@@ -14,7 +14,7 @@ RUN pip install --upgrade pip &&\
     pip install uv==${UV_VERSION}
 
 # Create a requirements.txt from the pyproject.toml
-RUN uv export --all-groups --no-hashes -o requirements.txt
+RUN uv export --group "dev" --group "gcp" --group "auth" --no-hashes -o requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
