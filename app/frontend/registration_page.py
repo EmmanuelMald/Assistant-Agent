@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 from loguru import logger
 import sys
-from app.frontend.config import BackendInfo, PagesConfig
+from app.frontend.config import PagesConfig
+from assistant_agent.config import APIConfig
 
 
 if "logger_configured_main_app" not in st.session_state:
@@ -11,7 +12,7 @@ if "logger_configured_main_app" not in st.session_state:
     st.session_state.logger_configured_main_app = True
 
 
-backend_config = BackendInfo()
+backend_config = APIConfig()
 pages_config = PagesConfig()
 
 add_user_url = backend_config.BASE_URL + backend_config.CREATE_USER_ENDPOINT
@@ -119,10 +120,4 @@ st.write("Already have an account?")
 if st.button(
     "Login Here", key="goto_login_btn"
 ):  # Usamos un botón para más control o st.page_link
-    st.switch_page("pages/login_page.py")
-
-# Para que st.page_link funcione correctamente y Streamlit detecte las páginas,
-# el script principal (este) debe estar en el directorio raíz de la app Streamlit,
-# y las otras páginas en un subdirectorio llamado 'pages'.
-# Ejemplo de cómo se vería un page_link (aunque switch_page es más directo para botones):
-# st.page_link("pages/login_page.py", label="Login Here", icon="➡️")
+    st.switch_page(pages_config.login)
