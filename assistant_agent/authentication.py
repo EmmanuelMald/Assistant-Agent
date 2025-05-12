@@ -1,21 +1,19 @@
-from pydantic import SecretStr
-from typing import Union, Optional
+from pydantic import SecretStr, EmailStr
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 import jwt
-import sys
-
-sys.path.append("../..")
-
 from assistant_agent.auxiliars.auth_auxiliars import verify_password
 from assistant_agent.schemas import UserInDB
-from assistant_agent.auxiliars.db_auxiliars import user_in_db
 from assistant_agent.credentials import get_auth_config
+from assistant_agent.database.tables.bigquery import BQUsersTable
 
 
 auth_config = get_auth_config()
 
+users_table = BQUsersTable()
 
-def authenticate_user(email: str, password: SecretStr) -> Union[UserInDB, bool]:
+
+def authenticate_user(email: EmailStr, password: SecretStr) -> Optional[UserInDB]:
     """
     Decides if the user needs to be authenticated based on the existance of its database identifier, in this case,
     the email, and its password
@@ -25,16 +23,14 @@ def authenticate_user(email: str, password: SecretStr) -> Union[UserInDB, bool]:
         password: SecretStr -> User's password
 
     Returns:
-        Union[UserInDB, bool] -> Return false if the user should not be authenticated, and the UserInDB class in case
-                                 the email and password matches
+        Optional[UserInDB] -> Returns the user's data in the DB in case the email and password matches
     """
-    user_data = user_in_db(email=email)
-    if not user_data.hashed_password:
-        return False
-    if not verify_password(
-        plain_password=password, hashed_password=user_data.hashed_password
-    ):
-        return False
+    user_id = users_table.email_in_table(email)
+    if not user_id:
+        return None
+    user_data = users_table.get_user_data(user_id)
+    if not verify_password(password, user_data.password):
+        return None
     return user_data
 
 
