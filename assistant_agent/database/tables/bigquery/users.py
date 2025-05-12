@@ -2,10 +2,11 @@ from .bq_base import BigQueryTable
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.auxiliars.auth_auxiliars import get_password_hash
 from assistant_agent.config import GCPConfig
-from assistant_agent.schemas import User
+from assistant_agent.schemas import User, UserInDB
 from datetime import datetime
 from loguru import logger
 from pydantic import SecretStr
+from typing import Optional
 
 
 gcp_config = GCPConfig()
@@ -63,15 +64,15 @@ class BQUsersTable(BigQueryTable):
 
         return id_exists
 
-    def _email_in_table(self, email: str) -> bool:
+    def email_in_table(self, email: str) -> Optional[str]:
         """
-        Tells if an email is already registered
+        If the email exists, returns its user_id
 
         Args:
             email: str -> User's email
 
         Returns:
-            bool -> True of the email is already registered
+            Optional[str] -> If the email exists, returns its user_id
         """
         query_email = f"""
             select
@@ -83,38 +84,49 @@ class BQUsersTable(BigQueryTable):
         rows_iterator = query_data(query_email)
 
         try:
-            # Try to get the first element (row) of the rows_iterator
-            next(rows_iterator)
-            return True
+            user_id = next(rows_iterator).user_id
+            return user_id
 
-        except StopIteration:  # If the iterator is empty
-            return False
+        except StopIteration:
+            return None
 
-    def get_hashed_password(self, user_id: str) -> SecretStr:
+    def get_user_data(self, user_id: str) -> Optional[UserInDB]:
         """
-        Get the hashed password of the user
+        Returns the user data if the user_id exists
 
         Args:
-            user_id: ID of the user
+            user_id: str -> Id of the user
 
         Returns:
-            str -> hashed password
+            Optional[UserInDB] -> UserInDB if the email is registered
         """
-        if not self._id_in_table(user_id=user_id):
-            raise ValueError("user_id is not in table")
-
-        query_password = f"""
+        query = f"""
             select
-                hashed_password
+                *
             from {self.project_id}.{self.dataset_id}.{self.name}
             where {self.primary_key} = '{user_id}'
         """
 
-        query_result = query_data(query=query_password)
+        rows_iterator = query_data(query)
 
-        hashed_password = [SecretStr(row.hashed_password) for row in query_result][0]
+        try:
+            # Try to get the first element (row) of the rows_iterator
+            user_data = next(rows_iterator)
 
-        return hashed_password
+            userdb = UserInDB(
+                user_id=user_data.user_id,
+                full_name=user_data.full_name,
+                email=user_data.email,
+                password=SecretStr(user_data.hashed_password),
+                company_name=user_data.company_name,
+                company_role=user_data.company_role,
+                created_at=user_data.created_at,
+            )
+
+            return userdb
+
+        except StopIteration:  # If the iterator is empty
+            return None
 
     def _insert_row(self, user_data: User) -> str:
         """
@@ -137,6 +149,9 @@ class BQUsersTable(BigQueryTable):
         logger.info(f"Generated user ID: {user_id}")
 
         logger.info("Inserting data...")
+
+        # Hashing password
+        user_data.password = get_password_hash(user_data.password)
 
         # Preparing the columns to fill in the BigQuery table
         data_to_insert = {
@@ -174,14 +189,11 @@ class BQUsersTable(BigQueryTable):
         Returns:
             user_id: str -> User id generated
         """
-        if self._email_in_table(email=user_data.email):
+        if self.email_in_table(email=user_data.email):
             raise ValueError(
-                "The email of the user is already registered,"
+                "The email of the user is already registered, "
                 "try with a new email or log in with it"
             )
-
-        # Hash the password
-        user_data.password = get_password_hash(user_data.password)
 
         user_id = self._insert_row(user_data=user_data)
         logger.info("User data inserted into BigQuery")

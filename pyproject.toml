@@ -46,4 +46,5 @@ auth = [
     "bcrypt>=4.3.0",
     "passlib>=1.7.4",
     "pyjwt[crypto]>=2.10.1",
+    "python-multipart>=0.0.20",
 ]
