@@ -64,7 +64,7 @@ class BQUsersTable(BigQueryTable):
 
         return id_exists
 
-    def email_in_db(self, email: str) -> Optional[str]:
+    def email_in_table(self, email: str) -> Optional[str]:
         """
         If the email exists, returns its user_id
 
@@ -127,32 +127,6 @@ class BQUsersTable(BigQueryTable):
 
         except StopIteration:  # If the iterator is empty
             return None
-
-    def get_hashed_password(self, user_id: str) -> SecretStr:
-        """
-        Get the hashed password of the user
-
-        Args:
-            user_id: ID of the user
-
-        Returns:
-            str -> hashed password
-        """
-        if not self._id_in_table(user_id=user_id):
-            raise ValueError("user_id is not in table")
-
-        query_password = f"""
-            select
-                hashed_password
-            from {self.project_id}.{self.dataset_id}.{self.name}
-            where {self.primary_key} = '{user_id}'
-        """
-
-        rows_iterator = query_data(query=query_password)
-
-        hashed_password = SecretStr(next(rows_iterator).hashed_password)
-
-        return hashed_password
 
     def _insert_row(self, user_data: User) -> str:
         """
