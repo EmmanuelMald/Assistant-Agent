@@ -23,10 +23,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Si el usuario ya está logueado, redirigir al chat directamente
-if st.session_state.get("logged_in"):
-    st.switch_page(pages_config.chat_agent)
-
 hide_entire_sidebar_css = """
     <style>
         [data-testid="stSidebar"] {
@@ -35,6 +31,11 @@ hide_entire_sidebar_css = """
     </style>
 """
 st.markdown(hide_entire_sidebar_css, unsafe_allow_html=True)
+
+# Si el usuario ya está logueado, redirigir al chat directamente
+if st.session_state.get("logged_in") and st.session_state.get("access_token"):
+    logger.info("Logged user, redirecting to chat")
+    st.switch_page(pages_config.chat_agent)
 
 st.title("Welcome! Register to use the service")
 st.write("Create a new account to access the Image Generation Agent.")
@@ -53,13 +54,8 @@ with st.form("registration_form_main", clear_on_submit=False):
     submitted = st.form_submit_button("Register Account")
 
     if submitted:
-        if (
-            not reg_full_name
-            or not reg_email
-            or not reg_password
-            or not reg_confirm_password
-        ):
-            st.error("Please fill in all mandatory fields.")
+        if not all([reg_full_name, reg_email, reg_password, reg_confirm_password]):
+            st.error("Please fill in all mandatory fields (*).")
         elif reg_password != reg_confirm_password:
             st.error("Passwords do not match. Please re-enter.")
             logger.warning(f"Password mismatch during registration for: {reg_email}")
@@ -73,19 +69,25 @@ with st.form("registration_form_main", clear_on_submit=False):
             }
             logger.info(f"Attempting registration for: {reg_email}")
             try:
-                response = requests.post(add_user_url, json=payload, timeout=10)
+                response = requests.post(add_user_url, json=payload, timeout=15)
                 if response.status_code == 201:
                     response_data = response.json()
                     user_id = response_data.get("user_id")
+                    access_token = response_data.get("access_token")
+                    token_type = response_data.get("token_type")
+
                     st.success(
                         f"User '{reg_full_name}' registered successfully! Redirecting to chat..."
                     )
                     logger.info(f"User {reg_email} registered with ID {user_id}")
 
+                    # Storing session info
                     st.session_state.logged_in = True
                     st.session_state.user_id = user_id
                     st.session_state.user_full_name = reg_full_name
                     st.session_state.user_email = reg_email
+                    st.session_state.access_token = access_token
+
                     st.balloons()
                     st.rerun()  # To force the verification of the login at the beginning and switch page
 
