@@ -1,6 +1,12 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from loguru import logger
-from app.backend.models import AgentRequest, AgentResponse, UserRegistrationResponse
+from app.backend.models import (
+    AgentRequest,
+    AgentResponse,
+    UserRegistrationResponse,
+    TokenResponse,
+    UserLoginRequest,
+)
 from assistant_agent.schemas import User
 from assistant_agent.agent import generate_agent_instance
 from assistant_agent.database.tables.bigquery import BQUsersTable
@@ -8,11 +14,15 @@ from assistant_agent.auxiliars.agent_auxiliars import (
     prepare_to_read_chat_history,
     prepare_to_send_chat_history,
 )
+from assistant_agent.authentication import authenticate_user, create_access_token
+from assistant_agent.config import APIConfig
 
 app = FastAPI()
 
+api_config = APIConfig()
 
-@app.post("/ask_agent", response_model=AgentResponse)
+
+@app.post(api_config.AGENT_REQUEST_ENDPOINT, response_model=AgentResponse)
 async def agent_request(request: AgentRequest):
     logger.debug("Generating new agent instance...")
     agent = generate_agent_instance()
@@ -45,7 +55,7 @@ async def agent_request(request: AgentRequest):
 
 
 @app.post(
-    "/add_user",
+    api_config.CREATE_USER_ENDPOINT,
     status_code=status.HTTP_201_CREATED,
     response_model=UserRegistrationResponse,
 )
@@ -81,3 +91,41 @@ def add_user(user_data: User, response: Response):
     message = "User registered successfully!"
 
     return UserRegistrationResponse(user_id=user_id, message=message)
+
+
+@app.post(
+    api_config.LOGIN_ENDPOINT,
+    response_model=TokenResponse,
+)
+async def login_for_access_token(login_data: UserLoginRequest):
+    """
+    Authenticate users with its email and password
+
+    Args:
+        user_data: UserLoginRequest -> Class containing all the data related to the login
+
+    Returns:
+        Access token if authentication is successfull
+    """
+    logger.info(f"Login request for email: {login_data.email}")
+
+    userdb = authenticate_user(email=login_data.email, password=login_data.password)
+
+    if not userdb:
+        logger.warning(
+            f"Failed login for {login_data.email} - incorrect credentails or user does not exist"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_payload = {"sub": userdb.user_id}
+
+    access_token = create_access_token(data=access_token_payload)
+
+    logger.info("Successfull login")
+    logger.info(f"Token generated for: {userdb.user_id}")
+
+    return TokenResponse(access_token=access_token)
