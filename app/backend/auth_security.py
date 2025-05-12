@@ -32,7 +32,7 @@ async def get_current_user_id_from_token(token: str = Depends(oauth2_scheme)) ->
     )
     expired_token_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detaul="Token has expired",
+        detail="Token has expired",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
