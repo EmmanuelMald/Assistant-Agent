@@ -45,14 +45,14 @@ class User(BaseModel, validate_assignment=True):
     @classmethod
     def normalize_company_name(cls, value):
         if value not in [None, ""]:
-            return value.strip().title()
+            return value.strip().upper()
         return None
 
     @field_validator("company_role", mode="after")
     @classmethod
     def normalize_company_role(cls, value):
         if value not in [None, ""]:
-            return value.strip().title()
+            return value.strip().upper()
         return None
 
 
