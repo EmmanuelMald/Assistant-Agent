@@ -1,8 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-import sys
-
-sys.path.append("../..")
+from assistant_agent.schemas import USER_ID_FIELD
 
 
 class AgentRequest(BaseModel):
@@ -29,4 +27,6 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    user_id: Optional[str] = None
+    """Defines the expected structure of the data inside the token"""
+
+    user_id: str = USER_ID_FIELD
