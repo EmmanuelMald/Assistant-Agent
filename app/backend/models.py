@@ -1,8 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr, SecretStr
 from typing import Optional
-import sys
-
-sys.path.append("../..")
+from assistant_agent.schemas import USER_ID_FIELD, PASSWORD_FIELD
 
 
 class AgentRequest(BaseModel):
@@ -18,6 +16,24 @@ class AgentResponse(BaseModel):
     current_history: str = Field(description="Whole chat session history")
 
 
-class UserRegistrationResponse(BaseModel):
-    user_id: str
-    message: str
+class TokenResponse(BaseModel):
+    access_token: str = Field(description="Token generated")
+    token_type: str = Field(default="bearer", description="type of token generated")
+
+
+class TokenData(BaseModel):
+    # Defines the expected structure of the data inside the token
+    user_id: str = USER_ID_FIELD
+
+
+class UserRegistrationResponse(TokenResponse):
+    user_id: str = USER_ID_FIELD
+    message: str = Field(
+        default="User successfully registered",
+        description="Message to return if the user was successfully registered",
+    )
+
+
+class UserLoginRequest(BaseModel):
+    email: EmailStr = Field(description="User's email")
+    password: SecretStr = PASSWORD_FIELD

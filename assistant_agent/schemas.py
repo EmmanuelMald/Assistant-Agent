@@ -5,8 +5,22 @@ from pydantic import (
     field_validator,
     SecretStr,
 )
+from datetime import datetime
 from typing import Optional
 import json
+
+
+# Common fields
+USER_ID_FIELD = Field(description="ID of the user", pattern=r"^UID\d{5}$")
+CHAT_SESSION_ID_FIELD = Field(
+    description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
+)
+PROMPT_ID_FIELD = Field(description="ID of the prompt.", pattern=r"^PID\d{6}$")
+PASSWORD_FIELD = Field(
+    description="User's password. Must be at least 8 characters long.",
+    min_length=8,
+)
+TIMESTAMP_FORMAT = r"%Y-%m-%d %H:%M:%S"
 
 
 class User(BaseModel, validate_assignment=True):
@@ -16,7 +30,6 @@ class User(BaseModel, validate_assignment=True):
     """
 
     full_name: str = Field(
-        default=None,  # Only in case this field is not passed
         description="Full name of the user",
         min_length=1,
         pattern=r"^[^\s].*",  # To not start with a space
@@ -32,10 +45,7 @@ class User(BaseModel, validate_assignment=True):
         description="Role that the user has in the company where he's working on",
         pattern=r"^[^\s].*",  # To not start with a space
     )
-    password: SecretStr = Field(
-        description="User's password. Must be at least 8 characters long.",
-        min_length=8,
-    )
+    password: SecretStr = PASSWORD_FIELD
 
     @field_validator("full_name", mode="after")
     @classmethod
@@ -46,45 +56,38 @@ class User(BaseModel, validate_assignment=True):
     @classmethod
     def normalize_company_name(cls, value):
         if value not in [None, ""]:
-            return value.strip().title()
+            return value.strip().upper()
         return None
 
     @field_validator("company_role", mode="after")
     @classmethod
     def normalize_company_role(cls, value):
         if value not in [None, ""]:
-            return value.strip().title()
+            return value.strip().upper()
         return None
 
 
+class UserInDB(User):
+    user_id: str = USER_ID_FIELD
+    created_at: datetime = Field(
+        description=r"datetime.datetime object with the timestamp when the user was created in the DB",
+    )
+
+
 class ChatSession(BaseModel, validate_assignment=True):
-    user_id: str = Field(
-        description="Id of the owner of the session", pattern=r"^UID\d{5}$"
-    )
-
-
-class UserInDB(BaseModel):
-    hashed_password: Optional[SecretStr] = Field(
-        description="Hashed password stored in DB"
-    )
+    user_id: str = USER_ID_FIELD
 
 
 class Prompt(BaseModel, validate_assignment=True):
-    chat_session_id: str = Field(
-        description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
-    )
-    user_id: str = Field(
-        description="Id of the owner of the session", pattern=r"^UID\d{5}$"
-    )
+    chat_session_id: str = CHAT_SESSION_ID_FIELD
+    user_id: str = USER_ID_FIELD
     prompt: str = Field(description="User's prompt", pattern=r"^\w.*", min_length=1)
     response: str = Field(description="Agent response", pattern=r"^\w.*", min_length=1)
 
 
 class AgentStep(BaseModel, validate_assignment=True):
-    chat_session_id: str = Field(
-        description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
-    )
-    prompt_id: str = Field(description="ID of the prompt", pattern=r"^PID\d{6}")
+    chat_session_id: str = CHAT_SESSION_ID_FIELD
+    prompt_id: str = PROMPT_ID_FIELD
     step_data: dict = Field(
         description="Dictionary with all the data related to the agent's step"
     )

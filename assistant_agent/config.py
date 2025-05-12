@@ -41,3 +41,10 @@ class AuthConfig(BaseSettings):
     SECRET_VERSION: str = "1"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+
+class APIConfig(BaseSettings):
+    BASE_URL: str = "https://agent-api-214571216460.northamerica-south1.run.app"
+    AGENT_REQUEST_ENDPOINT: str = "/ask_agent"
+    CREATE_USER_ENDPOINT: str = "/add_user"
+    LOGIN_ENDPOINT: str = "/login"
