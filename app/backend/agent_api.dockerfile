@@ -14,7 +14,7 @@ RUN pip install --upgrade pip &&\
     pip install uv==${UV_VERSION}
 
 # Create a requirements.txt from the pyproject.toml
-RUN uv export --all-groups --no-hashes -o requirements.txt
+RUN uv export --group "dev" --group "gcp" --group "auth" --no-hashes -o requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
@@ -22,11 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/backend/. ./app/backend/
 COPY ./assistant_agent ./assistant_agent
 
-# Move to the folder where the api will be executed
-WORKDIR /Assistant-Agent/app/backend
-
 # Expose the port where the api will listen
 EXPOSE 8000
 
 # Execute the API
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

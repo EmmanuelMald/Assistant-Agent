@@ -21,11 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copying all the necessary
 COPY app/frontend/. ./app/frontend/
 
-# Move to the app directory to execute uvicorn without errors
-WORKDIR /Assistant-Agent/app/frontend/
-
 # Expose the port where the app will listen
 EXPOSE 8501
 
 # Execute the app, do not try to open a web browser
-CMD ["streamlit", "run", "agent_ui.py", "--server.port", "8501", "--server.address", "0.0.0.0", "--server.headless", "true"]
+CMD ["python", "-m", "streamlit", "run", "app/frontend/agent_ui.py", "--server.port", "8501", "--server.address", "0.0.0.0", "--server.headless", "true"]
