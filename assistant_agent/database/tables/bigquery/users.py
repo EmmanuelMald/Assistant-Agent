@@ -1,6 +1,5 @@
 from .bq_base import BigQueryTable
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
-from assistant_agent.auxiliars.auth_auxiliars import get_password_hash
 from assistant_agent.config import GCPConfig
 from assistant_agent.schemas import User
 from datetime import datetime
@@ -180,9 +179,6 @@ class BQUsersTable(BigQueryTable):
                 "The email of the user is already registered, "
                 "try with a new email or log in with it"
             )
-
-        # Hash the password
-        user_data.password = get_password_hash(user_data.password)
 
         user_id = self._insert_row(user_data=user_data)
         logger.info("User data inserted into BigQuery")
