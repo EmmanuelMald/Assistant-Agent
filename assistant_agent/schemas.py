@@ -16,7 +16,6 @@ class User(BaseModel, validate_assignment=True):
     """
 
     full_name: str = Field(
-        default=None,  # Only in case this field is not passed
         description="Full name of the user",
         min_length=1,
         pattern=r"^[^\s].*",  # To not start with a space
