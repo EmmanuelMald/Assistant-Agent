@@ -16,14 +16,6 @@ class AgentResponse(BaseModel):
     current_history: str = Field(description="Whole chat session history")
 
 
-class UserRegistrationResponse(BaseModel):
-    user_id: str = USER_ID_FIELD
-    message: str = Field(
-        default="User successfully registered",
-        description="Message to return if the user was successfully registered",
-    )
-
-
 class TokenResponse(BaseModel):
     access_token: str = Field(description="Token generated")
     token_type: str = Field(default="bearer", description="type of token generated")
@@ -32,6 +24,14 @@ class TokenResponse(BaseModel):
 class TokenData(BaseModel):
     # Defines the expected structure of the data inside the token
     user_id: str = USER_ID_FIELD
+
+
+class UserRegistrationResponse(TokenResponse):
+    user_id: str = USER_ID_FIELD
+    message: str = Field(
+        default="User successfully registered",
+        description="Message to return if the user was successfully registered",
+    )
 
 
 class UserLoginRequest(BaseModel):
