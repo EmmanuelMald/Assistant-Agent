@@ -96,3 +96,8 @@ class AgentStep(BaseModel, validate_assignment=True):
     @classmethod
     def prepare_json(cls, value):
         return json.dumps(value)
+
+
+class ChatSessionData(ChatSession):
+    chat_session_id: str = (CHAT_SESSION_ID_FIELD,)
+    created_at: datetime = Field(description="Datetime when the session was created")
