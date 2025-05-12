@@ -16,6 +16,10 @@ CHAT_SESSION_ID_FIELD = Field(
     description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
 )
 PROMPT_ID_FIELD = Field(description="ID of the prompt.", pattern=r"^PID\d{6}$")
+PASSWORD_FIELD = Field(
+    description="User's password. Must be at least 8 characters long.",
+    min_length=8,
+)
 TIMESTAMP_FORMAT = r"%Y-%m-%d %H:%M:%S"
 
 
@@ -41,10 +45,7 @@ class User(BaseModel, validate_assignment=True):
         description="Role that the user has in the company where he's working on",
         pattern=r"^[^\s].*",  # To not start with a space
     )
-    password: SecretStr = Field(
-        description="User's password. Must be at least 8 characters long.",
-        min_length=8,
-    )
+    password: SecretStr = PASSWORD_FIELD
 
     @field_validator("full_name", mode="after")
     @classmethod
