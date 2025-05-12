@@ -6,6 +6,7 @@ from assistant_agent.schemas import User
 from datetime import datetime
 from loguru import logger
 from pydantic import SecretStr
+from typing import Union
 
 
 gcp_config = GCPConfig()
@@ -63,15 +64,15 @@ class BQUsersTable(BigQueryTable):
 
         return id_exists
 
-    def _email_in_table(self, email: str) -> bool:
+    def email_in_table(self, email: str) -> Union[str, None]:
         """
-        Tells if an email is already registered
+        Tells if an email is already registered, if so, returns the user_id
 
         Args:
             email: str -> User's email
 
         Returns:
-            bool -> True of the email is already registered
+            Union[str, None] -> user_id or None if the email is not registered
         """
         query_email = f"""
             select
@@ -84,11 +85,11 @@ class BQUsersTable(BigQueryTable):
 
         try:
             # Try to get the first element (row) of the rows_iterator
-            next(rows_iterator)
-            return True
+            user_id = next(rows_iterator).user_id
+            return user_id
 
         except StopIteration:  # If the iterator is empty
-            return False
+            return None
 
     def get_hashed_password(self, user_id: str) -> SecretStr:
         """
@@ -174,9 +175,9 @@ class BQUsersTable(BigQueryTable):
         Returns:
             user_id: str -> User id generated
         """
-        if self._email_in_table(email=user_data.email):
+        if self.email_in_table(email=user_data.email):
             raise ValueError(
-                "The email of the user is already registered,"
+                "The email of the user is already registered, "
                 "try with a new email or log in with it"
             )
 
