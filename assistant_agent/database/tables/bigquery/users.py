@@ -6,7 +6,7 @@ from assistant_agent.schemas import User
 from datetime import datetime
 from loguru import logger
 from pydantic import SecretStr
-from typing import Union
+from typing import Optional
 
 
 gcp_config = GCPConfig()
@@ -64,7 +64,7 @@ class BQUsersTable(BigQueryTable):
 
         return id_exists
 
-    def email_in_table(self, email: str) -> Union[str, None]:
+    def email_in_table(self, email: str) -> Optional[str]:
         """
         Tells if an email is already registered, if so, returns the user_id
 
