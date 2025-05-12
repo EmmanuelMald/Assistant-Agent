@@ -5,6 +5,7 @@ from pydantic import (
     field_validator,
     SecretStr,
 )
+from assistant_agent.auxiliars.auth_auxiliars import get_password_hash
 from typing import Optional
 import json
 
@@ -54,6 +55,11 @@ class User(BaseModel, validate_assignment=True):
         if value not in [None, ""]:
             return value.strip().upper()
         return None
+
+    @field_validator("password", mode="after")
+    @classmethod
+    def hash_user_password(cls, value):
+        return get_password_hash(value)
 
 
 class ChatSession(BaseModel, validate_assignment=True):
