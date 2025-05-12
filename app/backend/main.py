@@ -64,9 +64,15 @@ def add_user(user_data: User, response: Response):
     users_table = BQUsersTable()
     logger.debug("Users table successfully connected")
 
+    logger.info(f"Request to register email: {user_data.email}")
     try:
         user_id = users_table.generate_new_row(user_data)
         response.headers["Location"] = f"/users/{user_id}"
+
+        access_token_payload = {"sub": user_id}
+
+        access_token = create_access_token(data=access_token_payload)
+        logger.info(f"Access token created for the {user_id = }")
 
     except ValueError as ve:
         if "user is already registered" in str(ve).lower():
@@ -88,9 +94,7 @@ def add_user(user_data: User, response: Response):
             detail="An internal server error occurred while registering the user.",
         )
 
-    message = "User registered successfully!"
-
-    return UserRegistrationResponse(user_id=user_id, message=message)
+    return UserRegistrationResponse(user_id=user_id, access_token=access_token)
 
 
 @app.post(
