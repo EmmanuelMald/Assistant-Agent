@@ -1,7 +1,8 @@
 from .bq_base import BigQueryTable
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
+from assistant_agent.auxiliars.auth_auxiliars import get_password_hash
 from assistant_agent.config import GCPConfig
-from assistant_agent.schemas import User
+from assistant_agent.schemas import User, UserInDB
 from datetime import datetime
 from loguru import logger
 from pydantic import SecretStr
@@ -63,19 +64,19 @@ class BQUsersTable(BigQueryTable):
 
         return id_exists
 
-    def email_in_table(self, email: str) -> Optional[str]:
+    def get_user_by_email(self, email: str) -> Optional[UserInDB]:
         """
-        Tells if an email is already registered, if so, returns the user_id
+        Tells if an email is already registered, if so, returns all its data
 
         Args:
             email: str -> User's email
 
         Returns:
-            Union[str, None] -> user_id or None if the email is not registered
+            Optional[UserInDB] -> UserInDB if the email is registered
         """
         query_email = f"""
             select
-                user_id
+                *
             from {self.project_id}.{self.dataset_id}.{self.name}
             where email = '{email}'
         """
@@ -84,8 +85,19 @@ class BQUsersTable(BigQueryTable):
 
         try:
             # Try to get the first element (row) of the rows_iterator
-            user_id = next(rows_iterator).user_id
-            return user_id
+            user_data = next(rows_iterator)
+
+            userdb = UserInDB(
+                user_id=user_data.user_id,
+                full_name=user_data.full_name,
+                email=user_data.email,
+                password=SecretStr(user_data.hashed_password),
+                company_name=user_data.company_name,
+                company_role=user_data.company_role,
+                created_at=user_data.created_at,
+            )
+
+            return userdb
 
         except StopIteration:  # If the iterator is empty
             return None
@@ -137,6 +149,9 @@ class BQUsersTable(BigQueryTable):
         logger.info(f"Generated user ID: {user_id}")
 
         logger.info("Inserting data...")
+
+        # Hashing password
+        user_data.password = get_password_hash(user_data.password)
 
         # Preparing the columns to fill in the BigQuery table
         data_to_insert = {
