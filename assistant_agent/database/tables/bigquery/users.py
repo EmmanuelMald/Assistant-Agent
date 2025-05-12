@@ -64,24 +64,50 @@ class BQUsersTable(BigQueryTable):
 
         return id_exists
 
-    def get_user_by_email(self, email: str) -> Optional[UserInDB]:
+    def email_in_db(self, email: str) -> Optional[str]:
         """
-        Tells if an email is already registered, if so, returns all its data
+        If the email exists, returns its user_id
 
         Args:
             email: str -> User's email
 
         Returns:
-            Optional[UserInDB] -> UserInDB if the email is registered
+            Optional[str] -> If the email exists, returns its user_id
         """
         query_email = f"""
             select
-                *
+                user_id
             from {self.project_id}.{self.dataset_id}.{self.name}
             where email = '{email}'
         """
 
         rows_iterator = query_data(query_email)
+
+        try:
+            user_id = next(rows_iterator).user_id
+            return user_id
+
+        except StopIteration:
+            return None
+
+    def get_user_data(self, user_id: str) -> Optional[UserInDB]:
+        """
+        Returns the user data if the user_id exists
+
+        Args:
+            user_id: str -> Id of the user
+
+        Returns:
+            Optional[UserInDB] -> UserInDB if the email is registered
+        """
+        query = f"""
+            select
+                *
+            from {self.project_id}.{self.dataset_id}.{self.name}
+            where {self.primary_key} = '{user_id}'
+        """
+
+        rows_iterator = query_data(query)
 
         try:
             # Try to get the first element (row) of the rows_iterator
