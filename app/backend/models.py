@@ -17,7 +17,7 @@ class AgentResponse(BaseModel):
 
 
 class UserRegistrationResponse(BaseModel):
-    user_id: str
+    user_id: str = USER_ID_FIELD
     message: str
 
 
