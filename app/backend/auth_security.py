@@ -4,13 +4,16 @@ from pydantic import ValidationError
 import jwt
 from loguru import logger
 from assistant_agent.credentials import get_auth_config
+from assistant_agent.config import APIConfig
 from app.backend.models import TokenData
 
 auth_config = get_auth_config()
+api_config = APIConfig()
 
+token_url = api_config.LOGIN_ENDPOINT.replace("/", "")
 # tokenUrl must point to the endpoint where the token will be generated
 # Extracts the "Bearer" token from the "Authorization" header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=token_url)
 
 
 async def get_current_user_id_from_token(token: str = Depends(oauth2_scheme)) -> str:
