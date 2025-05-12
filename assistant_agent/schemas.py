@@ -74,15 +74,9 @@ class User(BaseModel, validate_assignment=True):
 
 class UserInDB(User):
     user_id: str = USER_ID_FIELD
-    created_at: str = Field(
-        description=r"String with the timestamp when the user was created in the DB",
-        pattern=TIMESTAMP_FORMAT,
+    created_at: datetime = Field(
+        description=r"datetime.datetime object with the timestamp when the user was created in the DB",
     )
-
-    @field_validator("created_at", mode="after")
-    @classmethod
-    def convert_string_to_datetime(cls, value):
-        return datetime.strptime(value, TIMESTAMP_FORMAT)
 
 
 class ChatSession(BaseModel, validate_assignment=True):
