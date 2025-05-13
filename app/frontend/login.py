@@ -76,6 +76,7 @@ with st.form("login_form_on_page", clear_on_submit=False):
                     logger.debug("Token obtained")
                     access_token = login_response_data.get("access_token")
                     token_type = login_response_data.get("token_type", "bearer")
+                    user_full_name = login_response_data.get("username")
 
                     if access_token:
                         st.success("Login successful! Redirecting to chat...")
@@ -87,6 +88,7 @@ with st.form("login_form_on_page", clear_on_submit=False):
                         st.session_state.logged_in = True
                         st.session_state.access_token = access_token
                         st.session_state.user_email = login_email
+                        st.session_state.user_full_name = user_full_name
                         logger.debug("Token stored in session_state")
 
                         st.rerun()  # Para forzar la redirección por la condición al inicio de la página
