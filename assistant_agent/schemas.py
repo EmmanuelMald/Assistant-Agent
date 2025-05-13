@@ -99,5 +99,5 @@ class AgentStep(BaseModel, validate_assignment=True):
 
 
 class ChatSessionData(ChatSession):
-    chat_session_id: str = (CHAT_SESSION_ID_FIELD,)
+    chat_session_id: str = CHAT_SESSION_ID_FIELD
     created_at: datetime = Field(description="Datetime when the session was created")
