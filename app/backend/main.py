@@ -8,6 +8,7 @@ from app.backend.models import (
     UserRegistrationResponse,
     TokenResponse,
     UserLoginRequest,
+    ChatSessionsResponse,
 )
 from assistant_agent.schemas import User, ChatSession, Prompt, AgentStep
 from assistant_agent.agent import generate_agent_instance
@@ -212,3 +213,10 @@ async def login_for_access_token(auth_form: OAuth2PasswordRequestForm = Depends(
     logger.info(f"Token generated for: {userdb.user_id}")
 
     return TokenResponse(access_token=access_token, username=userdb.full_name)
+
+
+@app.get(api_config.CHAT_SESSIONS_ENDPOINT, response_model=ChatSessionsResponse)
+async def get_user_sessions(current_user_id=Depends(get_current_user_id_from_token)):
+    # get_users_sessions already has error handlers
+    chat_sessions = chat_sessions_table.get_user_sessions(current_user_id)
+    return ChatSessionsResponse(sessions=chat_sessions)
