@@ -1,6 +1,10 @@
 from pydantic import BaseModel, Field, EmailStr, SecretStr
 from typing import Optional
-from assistant_agent.schemas import USER_ID_FIELD, PASSWORD_FIELD, CHAT_SESSION_ID_FIELD
+from assistant_agent.schemas import (
+    USER_ID_FIELD,
+    PASSWORD_FIELD,
+    CHAT_SESSION_ID_FIELD,
+)
 
 
 class AgentRequest(BaseModel):

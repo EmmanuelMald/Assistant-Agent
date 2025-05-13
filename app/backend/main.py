@@ -9,7 +9,13 @@ from app.backend.models import (
     TokenResponse,
     UserLoginRequest,
 )
-from assistant_agent.schemas import User, ChatSession, Prompt, AgentStep
+from assistant_agent.schemas import (
+    User,
+    ChatSession,
+    Prompt,
+    AgentStep,
+    ChatSessionData,
+)
 from assistant_agent.agent import generate_agent_instance
 from assistant_agent.auxiliars.agent_auxiliars import (
     prepare_to_read_chat_history,
@@ -212,3 +218,22 @@ async def login_for_access_token(auth_form: OAuth2PasswordRequestForm = Depends(
     logger.info(f"Token generated for: {userdb.user_id}")
 
     return TokenResponse(access_token=access_token, username=userdb.full_name)
+
+
+@app.get(api_config.CHAT_SESSIONS_ENDPOINT, response_model=list[ChatSessionData])
+async def get_user_sessions(current_user_id=Depends(get_current_user_id_from_token)):
+    try:
+        # get_users_sessions already has error handlers
+        chat_sessions = chat_sessions_table.get_user_sessions(current_user_id)
+        return chat_sessions
+    except ValueError as ve:
+        logger.warning(
+            f"Value error getting the chat_session_ids for {current_user_id}"
+        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+    except Exception:
+        logger.error(f"Error trying to get chat_session_ids for {current_user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not retrieve chat sessions",
+        )
