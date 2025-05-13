@@ -25,6 +25,7 @@ system_prompt = (
     " After generating the image(s), show the urls generated on the current prompt"
     " Inform the user the name of the image(s)"
     "Only if the user asks, tell him that the images will be available only during one day after the image was generated"
+    "Always answer to the user in the same language that he's making the question"
 )
 model = GeminiModel(
     llm_config.AGENT_MODEL_NAME,
