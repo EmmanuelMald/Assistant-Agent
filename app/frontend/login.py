@@ -71,10 +71,9 @@ with st.form("login_form_on_page", clear_on_submit=False):
                 )
 
                 if response.status_code == 200:  # Login exitoso
-                    login_response_data = (
-                        response.json()
-                    )  # La respuesta del backend es JSON
+                    login_response_data = response.json()
 
+                    logger.debug("Token obtained")
                     access_token = login_response_data.get("access_token")
                     token_type = login_response_data.get("token_type", "bearer")
 
@@ -88,6 +87,7 @@ with st.form("login_form_on_page", clear_on_submit=False):
                         st.session_state.logged_in = True
                         st.session_state.access_token = access_token
                         st.session_state.user_email = login_email
+                        logger.debug("Token stored in session_state")
 
                         st.rerun()  # Para forzar la redirección por la condición al inicio de la página
                     else:
