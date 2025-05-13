@@ -1,6 +1,11 @@
 from pydantic import BaseModel, Field, EmailStr, SecretStr
 from typing import Optional
-from assistant_agent.schemas import USER_ID_FIELD, PASSWORD_FIELD, CHAT_SESSION_ID_FIELD
+from assistant_agent.schemas import (
+    ChatSessionData,
+    USER_ID_FIELD,
+    PASSWORD_FIELD,
+    CHAT_SESSION_ID_FIELD,
+)
 
 
 class AgentRequest(BaseModel):
@@ -40,3 +45,9 @@ class UserRegistrationResponse(TokenResponse):
 class UserLoginRequest(BaseModel):
     email: EmailStr = Field(description="User's email")
     password: SecretStr = PASSWORD_FIELD
+
+
+class ChatSessionsResponse(BaseModel):
+    sessions: list[ChatSessionData] = Field(
+        description="List of all the sessions that the user has"
+    )
