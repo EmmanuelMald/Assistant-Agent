@@ -19,7 +19,7 @@ async def override_get_current_user_id() -> str:
     """
     Return a fix test user_id without validate any token
     """
-    return "UID99999"
+    return "UID00001"
 
 
 # Override dependency before making a request, needs to be another function
@@ -30,7 +30,11 @@ def test_ask_agent_success():
     """
     Test the /ask_agent endpoint with a valid request
     """
-    payload = {"current_user_prompt": "Hi, agent!", "chat_history": "[]"}
+    payload = {
+        "current_user_prompt": "Hi, agent!",
+        "chat_history": "[]",
+        "chat_session_id": None,
+    }
 
     response = client.post(ask_agent_endpoint, json=payload)
 
