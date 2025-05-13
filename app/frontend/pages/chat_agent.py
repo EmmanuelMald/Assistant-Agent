@@ -86,6 +86,9 @@ if "messages" not in st.session_state:
 if "formatted_chat_history" not in st.session_state:
     # Initializing an empty chat history
     st.session_state.formatted_chat_history = "[]"  # Required by the agent API
+if "chat_session_id" not in st.session_state:
+    # Start with an empty session_id
+    st.session_state.chat_session_id = None
 
 # Show chat session history
 for message in st.session_state.messages:
@@ -142,11 +145,16 @@ if st.session_state.processing_request and st.session_state.active_prompt:
         with st.spinner("Agent is thinking..."):
             # Get the whole chat history
             previous_formatted_history = st.session_state.formatted_chat_history
+
+            # Get the chat_session_id
+            previous_chat_session_id = st.session_state.chat_session_id
+
             logger.debug("Chat history obtained")
 
             payload = {
                 "current_user_prompt": prompt_to_process,
                 "chat_history": previous_formatted_history,
+                "chat_session_id": previous_chat_session_id,
             }
             logger.debug("Payload created")
 
@@ -162,11 +170,15 @@ if st.session_state.processing_request and st.session_state.active_prompt:
                     # Extract agent data
                     agent_response_text = response_data["agent_response"]
                     new_formatted_history = response_data["current_history"]
+                    new_chat_session_id = response_data["chat_session_id"]
 
                     logger.info(f"Agent responded: '{agent_response_text}'")
 
                     # Update chat history formatted
                     st.session_state.formatted_chat_history = new_formatted_history
+
+                    # Update chat_sesion_id
+                    st.session_state.chat_session_id = new_chat_session_id
 
                     # Find image URLs that the agent retrieved
                     image_urls_found = find_image_urls(agent_response_text)
