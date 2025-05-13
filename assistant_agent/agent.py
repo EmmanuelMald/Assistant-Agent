@@ -26,6 +26,7 @@ system_prompt = (
     " Inform the user the name of the image(s)"
     "Only if the user asks, tell him that the images will be available only during one day after the image was generated"
     "Always answer to the user in the same language that he's making the question"
+    "You have context of all the conversation history"
 )
 model = GeminiModel(
     llm_config.AGENT_MODEL_NAME,
