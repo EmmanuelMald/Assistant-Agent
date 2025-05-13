@@ -35,7 +35,7 @@ push-agent-api:
 	docker push $(AGENT_API_IMAGE_NAME)
 
 run-agent-ui:
-	uv run python -m streamlit run app/frontend/agent_ui.py
+	uv run python -m streamlit run app/frontend/login.py
 
 build-agent-ui:
 	cp pyproject.toml uv.lock app/frontend/.
