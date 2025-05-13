@@ -163,7 +163,11 @@ def add_user(user_data: User, response: Response):
             detail="An internal server error occurred while registering the user.",
         )
 
-    return UserRegistrationResponse(user_id=user_id, access_token=access_token)
+    return UserRegistrationResponse(
+        user_id=user_id,
+        access_token=access_token,
+        username=user_data.full_name,
+    )
 
 
 @app.post(
@@ -207,4 +211,4 @@ async def login_for_access_token(auth_form: OAuth2PasswordRequestForm = Depends(
     logger.info("Successfull login")
     logger.info(f"Token generated for: {userdb.user_id}")
 
-    return TokenResponse(access_token=access_token)
+    return TokenResponse(access_token=access_token, username=userdb.full_name)
