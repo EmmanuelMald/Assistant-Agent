@@ -140,20 +140,44 @@ class BQPromptsTable(BigQueryTable):
         """
         return self._insert_row(prompt_data)
 
-    def get_prompts_from_session(self, chat_session_id: str) -> list[PromptData]:
+    def get_prompts_from_user_session(
+        self, user_id: str, chat_session_id: str
+    ) -> list[PromptData]:
         """
         Returns all the prompt data of a chat session id
 
         Args:
             chat_session_id: str -> Id of the chat session
+            user_id: str -> Id of the user
 
         Returns:
             list[PromptData] -> Each entry is a prompt, containing the prompt,
                                 response, and when it was creaetd
         """
+        if not self._users_table.user_exists(user_id):
+            raise ValueError("The user_id introduced does not exists")
+
         if not self._chat_sessions_table.session_exists(chat_session_id):
             raise ValueError("The chat_session_id does not exists")
 
+        logger.info(
+            "Verifying that the chat session owner corresponds to the user_id provided"
+        )
+        chat_session_owner_query = f"""
+            select
+                user_id
+            from {self.project_id}.{self.dataset_id}.{self._chat_sessions_table.name}
+            where {self._chat_sessions_table.primary_key} = '{chat_session_id}'
+        """
+
+        rows_iterator = query_data(chat_session_owner_query)
+
+        chat_session_owner = next(rows_iterator).user_id
+
+        if chat_session_owner != user_id:
+            raise ValueError("The chat session is not of the user_id provided")
+
+        # Getting the chat session historu
         query = f"""
                 select
                     prompt_id,
