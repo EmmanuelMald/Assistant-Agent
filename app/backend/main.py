@@ -59,19 +59,17 @@ async def agent_request(
         chat_session_id = request.chat_session_id
         logger.info(f"chat session id found: {chat_session_id}")
 
-        logger.debug("Preparing chat history to be read by the agent...")
-        if request.chat_history == "[]":
-            logger.info(
-                "Empty chat session history... Getting history from the database"
-            )
-            previous_chat_history = agent_steps_table.get_chat_session_history(
-                chat_session_id
-            )
-            previous_chat_history_string = json.dumps(previous_chat_history)
-            chat_history = prepare_to_read_chat_history(previous_chat_history_string)
+    logger.debug("Preparing chat history to be read by the agent...")
+    if request.chat_history == "[]":
+        logger.info("Empty chat session history... Getting history from the database")
+        previous_chat_history = agent_steps_table.get_chat_session_history(
+            chat_session_id
+        )
+        previous_chat_history_string = json.dumps(previous_chat_history)
+        chat_history = prepare_to_read_chat_history(previous_chat_history_string)
 
-        else:
-            chat_history = prepare_to_read_chat_history(request.chat_history)
+    else:
+        chat_history = prepare_to_read_chat_history(request.chat_history)
 
     logger.info("Sending new prompt to the agent...")
     try:
