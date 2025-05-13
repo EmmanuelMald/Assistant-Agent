@@ -21,6 +21,7 @@ class AgentResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str = Field(description="Token generated")
     token_type: str = Field(default="bearer", description="type of token generated")
+    username: str = Field(description="Name of the user")
 
 
 class TokenData(BaseModel):
