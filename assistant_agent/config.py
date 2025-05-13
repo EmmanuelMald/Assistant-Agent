@@ -48,3 +48,4 @@ class APIConfig(BaseSettings):
     AGENT_REQUEST_ENDPOINT: str = "/ask_agent"
     CREATE_USER_ENDPOINT: str = "/add_user"
     LOGIN_ENDPOINT: str = "/login"
+    CHAT_SESSIONS_ENDPOINT: str = "/chat_sessions"
