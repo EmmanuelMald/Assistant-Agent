@@ -1,6 +1,6 @@
 from .bq_base import BigQueryTable
 from assistant_agent.database.tables.bigquery import BQUsersTable
-from assistant_agent.schemas import ChatSession
+from assistant_agent.schemas import ChatSession, ChatSessionData
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.config import GCPConfig
 import re
@@ -139,3 +139,39 @@ class BQChatSessionsTable(BigQueryTable):
             chat_session_id: str -> Id of the chat session generated
         """
         return self._insert_row(session_info)
+
+    def get_user_sessions(self, user_id: str) -> list[ChatSessionData]:
+        """
+        Returns all the chat_session_ids of a user_id
+
+        Args:
+            user_id: Id of the user
+
+        Returns:
+            list[ChatSessionData] -> list of chat_sessions
+        """
+        logger.info("Validating user_id")
+        userdb = self._users_table.user_exists(user_id)
+        if not userdb:
+            raise ValueError("The user_id does not exist")
+
+        query = f"""
+            select
+                chat_session_id,
+                created_at
+            from {self.project_id}.{self.dataset_id}.{self.name}
+            where user_id = '{user_id}'
+        """
+
+        rows_iterator = query_data(query)
+
+        chat_sessions_info = [
+            ChatSessionData(
+                user_id=user_id,
+                chat_session_id=row.chat_session_id,
+                created_at=row.created_at,
+            )
+            for row in rows_iterator
+        ]
+
+        return chat_sessions_info

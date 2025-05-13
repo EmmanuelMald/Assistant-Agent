@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr, SecretStr
 from typing import Optional
-from assistant_agent.schemas import USER_ID_FIELD, PASSWORD_FIELD
+from assistant_agent.schemas import USER_ID_FIELD, PASSWORD_FIELD, CHAT_SESSION_ID_FIELD
 
 
 class AgentRequest(BaseModel):
@@ -9,11 +9,13 @@ class AgentRequest(BaseModel):
         description="History of the current chat",
     )
     current_user_prompt: str = Field(description="User prompt", min_length=1)
+    chat_session_id: Optional[str] = CHAT_SESSION_ID_FIELD
 
 
 class AgentResponse(BaseModel):
     agent_response: str = Field(description="Agent response")
     current_history: str = Field(description="Whole chat session history")
+    chat_session_id: str = CHAT_SESSION_ID_FIELD
 
 
 class TokenResponse(BaseModel):

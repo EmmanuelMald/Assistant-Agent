@@ -138,3 +138,29 @@ class BQAgentStepsTable(BigQueryTable):
             str -> step_id
         """
         return self._insert_row(step_data)
+
+    def get_chat_session_history(self, chat_session_id: str) -> list[dict]:
+        """
+        Generate a list of dictionaries. The list is the full chat session history
+
+        Args:
+            chat_session_id: str -> Id of the chat session
+
+        Returns:
+            list[dict] -> Full chat session history
+        """
+        if not self._sessions_table.session_exists(chat_session_id):
+            raise ValueError("chat_session_id does not exist")
+
+        query = f"""
+            select
+                step_data
+            from {self.project_id}.{self.dataset_id}.{self.name}
+            where chat_session_id = '{chat_session_id}'
+        """
+
+        rows_iterator = query_data(query)
+
+        history = [row.step_data for row in rows_iterator]
+
+        return history
