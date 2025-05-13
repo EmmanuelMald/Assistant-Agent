@@ -22,6 +22,15 @@ st.set_page_config(
     page_title="Agent Chat", layout="wide", initial_sidebar_state="expanded"
 )  # Mostrar sidebar para logout
 
+hide_pages_nav_css = """
+    <style>
+        [data-testid="stSidebarNav"] { /* Este es el selector para la navegación de páginas */
+            display: none;
+        }
+    </style>
+"""
+st.markdown(hide_pages_nav_css, unsafe_allow_html=True)
+
 if not st.session_state.get("logged_in") or not st.session_state.get("access_token"):
     st.warning("Please login or register to access the agent chat")
 
@@ -36,6 +45,7 @@ if not st.session_state.get("logged_in") or not st.session_state.get("access_tok
         ):
             st.switch_page(pages_config.registration)
     st.stop()  # Detener la ejecución de esta página si no está logueado
+
 
 # Log out button in the lateral bar
 with st.sidebar:
