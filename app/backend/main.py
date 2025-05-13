@@ -9,19 +9,32 @@ from app.backend.models import (
     TokenResponse,
     UserLoginRequest,
 )
-from assistant_agent.schemas import User
+from assistant_agent.schemas import User, ChatSession, Prompt, AgentStep
 from assistant_agent.agent import generate_agent_instance
-from assistant_agent.database.tables.bigquery import BQUsersTable
 from assistant_agent.auxiliars.agent_auxiliars import (
     prepare_to_read_chat_history,
     prepare_to_send_chat_history,
 )
 from assistant_agent.authentication import authenticate_user, create_access_token
+from assistant_agent.database.tables.bigquery import (
+    BQAgentStepsTable,
+    BQChatSessionsTable,
+    BQPromptsTable,
+    BQUsersTable,
+)
 from assistant_agent.config import APIConfig
+import json
+
 
 app = FastAPI()
 
 api_config = APIConfig()
+
+# Instanciate only once the database tables
+agent_steps_table = BQAgentStepsTable()
+chat_sessions_table = BQChatSessionsTable()
+users_table = BQUsersTable()
+prompts_table = BQPromptsTable()
 
 
 @app.post(api_config.AGENT_REQUEST_ENDPOINT, response_model=AgentResponse)
@@ -31,13 +44,35 @@ async def agent_request(
 ):
     logger.debug("Generating new agent instance...")
     agent = generate_agent_instance()
-    logger.debug("Agent instance generated successfully")
-
-    logger.debug("Preparing chat history to be read by the agent...")
-    chat_history = prepare_to_read_chat_history(request.chat_history)
-    logger.debug("History chat session prepared")
 
     logger.info(f"user_id: {current_user_id}")
+
+    logger.info("Getting chat_session_id...")
+    if request.chat_session_id is None:
+        logger.info("Creating a new chat session...")
+        chat_session_id = chat_sessions_table.generate_new_row(
+            ChatSession(user_id=current_user_id)
+        )
+        logger.info(f"New chat_session_id generated: {chat_session_id}")
+
+    else:
+        chat_session_id = request.chat_session_id
+        logger.info(f"chat session id found: {chat_session_id}")
+
+        logger.debug("Preparing chat history to be read by the agent...")
+        if request.chat_history == "[]":
+            logger.info(
+                "Empty chat session history... Getting history from the database"
+            )
+            previous_chat_history = agent_steps_table.get_chat_session_history(
+                chat_session_id
+            )
+            previous_chat_history_string = json.dumps(previous_chat_history)
+            chat_history = prepare_to_read_chat_history(previous_chat_history_string)
+
+        else:
+            chat_history = prepare_to_read_chat_history(request.chat_history)
+
     logger.info("Sending new prompt to the agent...")
     try:
         agent_answer = await agent.run(
@@ -45,16 +80,50 @@ async def agent_request(
         )
         logger.info(f"Agent response:{agent_answer.output}")
 
+        logger.info("Storing prompt data...")
+        prompt_data = Prompt(
+            chat_session_id=chat_session_id,
+            user_id=current_user_id,
+            prompt=request.current_user_prompt,
+            response=agent_answer.output,
+        )
+        prompt_id = prompts_table.generate_new_row(prompt_data=prompt_data)
+        logger.info("Prompt data stored")
+
+        # Get the history as a binary string
+        new_chat_history_binary = agent_answer.all_messages_json()
+
+        # Get the history as a string
+        new_chat_history = prepare_to_send_chat_history(new_chat_history_binary)
+
+        logger.info("Storing agent steps...")
+        # Get a list of dictionaries
+        full_history_steps = json.loads(new_chat_history)
+
+        # Get the current history stored in the DB
+        db_history = agent_steps_table.get_chat_session_history(chat_session_id)
+
+        # Get the difference in the history between the database and the current history
+        new_history = len(full_history_steps) - len(db_history)
+        new_steps = full_history_steps[-new_history:]
+
+        for new_step in new_steps:
+            agent_step = AgentStep(
+                chat_session_id=chat_session_id, prompt_id=prompt_id, step_data=new_step
+            )
+            agent_steps_table.generate_new_row(step_data=agent_step)
+        logger.info("Agent steps stored in DB")
+
     except Exception as e:
         logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
-    new_chat_history_binary = agent_answer.all_messages_json()
-    new_chat_history = prepare_to_send_chat_history(new_chat_history_binary)
     response = AgentResponse(
-        agent_response=agent_answer.output, current_history=new_chat_history
+        agent_response=agent_answer.output,
+        current_history=new_chat_history,
+        chat_session_id=chat_session_id,
     )
 
     return response
@@ -66,10 +135,6 @@ async def agent_request(
     response_model=UserRegistrationResponse,
 )
 def add_user(user_data: User, response: Response):
-    logger.debug("Connecting to the database...")
-    users_table = BQUsersTable()
-    logger.debug("Users table successfully connected")
-
     logger.info(f"Request to register email: {user_data.email}")
     try:
         user_id = users_table.generate_new_row(user_data)
