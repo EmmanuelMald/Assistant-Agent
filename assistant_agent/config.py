@@ -49,3 +49,4 @@ class APIConfig(BaseSettings):
     CREATE_USER_ENDPOINT: str = "/add_user"
     LOGIN_ENDPOINT: str = "/login"
     CHAT_SESSIONS_ENDPOINT: str = "/chat_sessions"
+    CHAT_SESSION_HISTORY_ENDPOINT: str = "/chat_sessions/{session_id}/history"
