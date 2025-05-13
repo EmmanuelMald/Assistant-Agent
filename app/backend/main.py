@@ -15,6 +15,7 @@ from assistant_agent.schemas import (
     Prompt,
     AgentStep,
     ChatSessionData,
+    PromptData,
 )
 from assistant_agent.agent import generate_agent_instance
 from assistant_agent.auxiliars.agent_auxiliars import (
@@ -221,7 +222,9 @@ async def login_for_access_token(auth_form: OAuth2PasswordRequestForm = Depends(
 
 
 @app.get(api_config.CHAT_SESSIONS_ENDPOINT, response_model=list[ChatSessionData])
-async def get_user_sessions(current_user_id=Depends(get_current_user_id_from_token)):
+async def get_user_sessions(
+    current_user_id: str = Depends(get_current_user_id_from_token),
+):
     try:
         # get_users_sessions already has error handlers
         chat_sessions = chat_sessions_table.get_user_sessions(current_user_id)
@@ -236,4 +239,29 @@ async def get_user_sessions(current_user_id=Depends(get_current_user_id_from_tok
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not retrieve chat sessions",
+        )
+
+
+@app.get(api_config.CHAT_SESSION_HISTORY_ENDPOINT, response_model=list[PromptData])
+async def get_chat_history(
+    chat_session_id: str, current_user_id: str = Depends(get_current_user_id_from_token)
+):
+    try:
+        prompts_list = prompts_table.get_prompts_from_user_session(
+            user_id=current_user_id,
+            chat_session_id=chat_session_id,
+        )
+        return prompts_list
+    except ValueError as ve:
+        logger.warning(
+            f"Value error getting the history of the chat session: {chat_session_id}"
+        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+    except Exception:
+        logger.error(
+            f"Error trying to get the history from the chat session: {chat_session_id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not retrieve the chat session history",
         )
