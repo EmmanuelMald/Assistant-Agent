@@ -66,7 +66,7 @@ if __name__ == "__main__":
     history = []
     while request != "exit":
         result = agent.run_sync(request, message_history=history)
-        history = result.all_messages()
+        history = result.all_messages()  # list of ModelRequest objects
         history_json = result.all_messages_json()
         logger.debug(f"{history_json=}")
         logger.info(f"{result.output}")

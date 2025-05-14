@@ -3,19 +3,18 @@ from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelMessage
 import json
 
 
-def prepare_to_read_chat_history(chat_history: str) -> list[ModelMessage]:
+def prepare_to_read_chat_history(chat_history: list[dict]) -> list[ModelMessage]:
     """
-    Convert a chat sessions that is obtained in a json string format into a list[ModelMessage]
-    that the agent can read during chat sessions.
+    Convert a chat session history that is obtained as a list of dictionaries and
+    transform it into a list[ModelMessage] that the agent can read during chat sessions.
 
     Args:
-        chat_history: str -> JSON string containing all the chat session history
+        chat_history: list[dict] -> list of dictionaries obtained fron the database, this contains all the
+                                    agent steps, not only the answer/response
 
     Returns:
         list[ModelMessage] -> List of ModelMessage objects that the agent can process
     """
-    # Convert the JSON string into a list of dictionaries
-    chat_history = json.loads(chat_history)
 
     # Validates the structure of the python objects
     chat_history = to_jsonable_python(chat_history)
@@ -24,6 +23,27 @@ def prepare_to_read_chat_history(chat_history: str) -> list[ModelMessage]:
     chat_history = ModelMessagesTypeAdapter.validate_python(chat_history)
 
     return chat_history
+
+
+def get_new_agent_steps(previous_steps: list[dict], all_steps: bytes):
+    """
+    Process the previous_steps and the new one to store only the new history generated
+
+    Args:
+        previous_steps: list[dict] -> List of dictionaries, each dictionary is an agent step
+                                        that was already stored in the database
+        all_steps: bytes -> binary string obtained after making agent.all_messages_json()
+
+    Returns: -> list[dict] -> List of the new agent steps generated
+    """
+    # Convert it into a list of dictionaries
+    all_steps = json.loads(all_steps)
+
+    number_new_steps = len(previous_steps) - len(all_steps)  # always a negative number
+
+    new_steps = all_steps[number_new_steps:]
+
+    return new_steps
 
 
 def prepare_to_send_chat_history(chat_history: bytes) -> str:

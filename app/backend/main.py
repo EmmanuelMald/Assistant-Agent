@@ -19,7 +19,7 @@ from assistant_agent.schemas import (
 from assistant_agent.agent import generate_agent_instance
 from assistant_agent.auxiliars.agent_auxiliars import (
     prepare_to_read_chat_history,
-    prepare_to_send_chat_history,
+    get_new_agent_steps,
 )
 from assistant_agent.authentication import authenticate_user, create_access_token
 from assistant_agent.database.tables.bigquery import (
@@ -29,7 +29,7 @@ from assistant_agent.database.tables.bigquery import (
     BQUsersTable,
 )
 from assistant_agent.config import APIConfig
-import json
+import asyncio
 
 
 app = FastAPI()
@@ -60,22 +60,24 @@ async def agent_request(
             ChatSession(user_id=current_user_id)
         )
         logger.info(f"New chat_session_id generated: {chat_session_id}")
+        logger.info("Starting a new chat history")
+        previous_agent_steps = list()  # To start a new chat session
 
     else:
         chat_session_id = request.chat_session_id
         logger.info(f"chat session id found: {chat_session_id}")
 
-    logger.debug("Preparing chat history to be read by the agent...")
-    if request.chat_history == "[]":
-        logger.info("Empty chat session history... Getting history from the database")
-        previous_chat_history = agent_steps_table.get_chat_session_history(
+        # if a chat_session_id was passed, then always get the history from BigQuery
+        logger.info("Getting history from the database")
+
+        # Get a list of dictionaries
+        previous_agent_steps = agent_steps_table.get_chat_session_history(
             chat_session_id
         )
-        previous_chat_history_string = json.dumps(previous_chat_history)
-        chat_history = prepare_to_read_chat_history(previous_chat_history_string)
+        logger.info("Chat history obtained from the database")
 
-    else:
-        chat_history = prepare_to_read_chat_history(request.chat_history)
+    # Convert it to a list of ModelRequest/ModelResponse objects
+    chat_history = prepare_to_read_chat_history(previous_agent_steps)
 
     logger.info("Sending new prompt to the agent...")
     try:
@@ -94,28 +96,31 @@ async def agent_request(
         prompt_id = prompts_table.generate_new_row(prompt_data=prompt_data)
         logger.info("Prompt data stored")
 
-        # Get the history as a binary string
-        new_chat_history_binary = agent_answer.all_messages_json()
-
-        # Get the history as a string
-        new_chat_history = prepare_to_send_chat_history(new_chat_history_binary)
-
         logger.info("Storing agent steps...")
-        # Get a list of dictionaries
-        full_history_steps = json.loads(new_chat_history)
 
-        # Get the current history stored in the DB
-        db_history = agent_steps_table.get_chat_session_history(chat_session_id)
+        # Get the history as a binary string
+        all_agent_steps = agent_answer.all_messages_json()
 
-        # Get the difference in the history between the database and the current history
-        new_history = len(full_history_steps) - len(db_history)
-        new_steps = full_history_steps[-new_history:]
+        new_steps = get_new_agent_steps(
+            previous_steps=previous_agent_steps,
+            all_steps=all_agent_steps,
+        )
 
+        # As generate_new_row is a syncronous function, it will be executed in
+        # different threads to reduce the execution time
+        storage_tasks = list()
         for new_step in new_steps:
             agent_step = AgentStep(
                 chat_session_id=chat_session_id, prompt_id=prompt_id, step_data=new_step
             )
-            agent_steps_table.generate_new_row(step_data=agent_step)
+
+            task = asyncio.to_thread(
+                agent_steps_table.generate_new_row,
+                agent_step,
+            )
+            storage_tasks.append(task)
+
+        await asyncio.gather(*storage_tasks, return_exceptions=True)
         logger.info("Agent steps stored in DB")
 
     except Exception as e:
@@ -126,7 +131,6 @@ async def agent_request(
 
     response = AgentResponse(
         agent_response=agent_answer.output,
-        current_history=new_chat_history,
         chat_session_id=chat_session_id,
     )
 

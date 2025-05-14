@@ -32,14 +32,16 @@ def test_ask_agent_success():
     """
     payload = {
         "current_user_prompt": "Hi, agent!",
-        "chat_history": "[]",
         "chat_session_id": None,
     }
 
     response = client.post(ask_agent_endpoint, json=payload)
 
+    response_data = response.json()
+
     assert response.status_code == 200
-    assert "current_history" in response.json().keys()
+    assert "chat_session_id" in response_data
+    assert isinstance(response_data["chat_session_id"], str)
     assert "agent_response" in response.json().keys()
 
 
