@@ -8,17 +8,12 @@ from assistant_agent.schemas import (
 
 
 class AgentRequest(BaseModel):
-    chat_history: Optional[str] = Field(
-        default="[]",
-        description="History of the current chat",
-    )
     current_user_prompt: str = Field(description="User prompt", min_length=1)
     chat_session_id: Optional[str] = CHAT_SESSION_ID_FIELD
 
 
 class AgentResponse(BaseModel):
     agent_response: str = Field(description="Agent response")
-    current_history: str = Field(description="Whole chat session history")
     chat_session_id: str = CHAT_SESSION_ID_FIELD
 
 
