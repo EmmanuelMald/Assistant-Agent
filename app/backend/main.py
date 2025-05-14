@@ -169,7 +169,7 @@ def add_user(user_data: User, response: Response):
             detail="An internal server error occurred while registering the user.",
         )
 
-    return TokenResponse(access_token=access_token)
+    return TokenResponse(access_token=access_token, username=user_data.full_name)
 
 
 @app.post(
