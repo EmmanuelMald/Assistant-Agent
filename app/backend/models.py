@@ -33,14 +33,6 @@ class TokenData(BaseModel):
     user_id: str = USER_ID_FIELD
 
 
-class UserRegistrationResponse(TokenResponse):
-    user_id: str = USER_ID_FIELD
-    message: str = Field(
-        default="User successfully registered",
-        description="Message to return if the user was successfully registered",
-    )
-
-
 class UserLoginRequest(BaseModel):
     email: EmailStr = Field(description="User's email")
     password: SecretStr = PASSWORD_FIELD
