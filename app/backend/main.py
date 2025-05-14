@@ -5,7 +5,6 @@ from loguru import logger
 from app.backend.models import (
     AgentRequest,
     AgentResponse,
-    UserRegistrationResponse,
     TokenResponse,
     UserLoginRequest,
 )
@@ -137,7 +136,7 @@ async def agent_request(
 @app.post(
     api_config.CREATE_USER_ENDPOINT,
     status_code=status.HTTP_201_CREATED,
-    response_model=UserRegistrationResponse,
+    response_model=TokenResponse,
 )
 def add_user(user_data: User, response: Response):
     logger.info(f"Request to register email: {user_data.email}")
@@ -170,11 +169,7 @@ def add_user(user_data: User, response: Response):
             detail="An internal server error occurred while registering the user.",
         )
 
-    return UserRegistrationResponse(
-        user_id=user_id,
-        access_token=access_token,
-        username=user_data.full_name,
-    )
+    return TokenResponse(access_token=access_token, username=user_data.full_name)
 
 
 @app.post(

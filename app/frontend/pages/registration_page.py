@@ -6,10 +6,10 @@ from app.frontend.config import PagesConfig
 from assistant_agent.config import APIConfig
 
 
-if "logger_configured_main_app" not in st.session_state:
+if "logger_level_configured" not in st.session_state:
     logger.remove()
     logger.add(sys.stderr, level="INFO")
-    st.session_state.logger_configured_main_app = True
+    st.session_state.logger_level_configured = True
 
 
 backend_config = APIConfig()
@@ -73,21 +73,19 @@ with st.form("registration_form_main", clear_on_submit=False):
                 response = requests.post(add_user_url, json=payload, timeout=15)
                 if response.status_code == 201:
                     response_data = response.json()
-                    user_id = response_data.get("user_id")
+                    user_full_name = response_data.get("username")
                     access_token = response_data.get("access_token")
                     token_type = response_data.get("token_type")
 
                     st.success(
                         f"User '{reg_full_name}' registered successfully! Redirecting to chat..."
                     )
-                    logger.info(f"User {reg_email} registered with ID {user_id}")
 
                     # Storing session info
                     st.session_state.logged_in = True
-                    st.session_state.user_id = user_id
-                    st.session_state.user_full_name = reg_full_name
-                    st.session_state.user_email = reg_email
                     st.session_state.access_token = access_token
+                    st.session_state.user_email = reg_email
+                    st.session_state.user_full_name = user_full_name
 
                     st.balloons()
                     st.rerun()  # To force the verification of the login at the beginning and switch page
