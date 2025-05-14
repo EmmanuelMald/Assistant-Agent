@@ -161,7 +161,7 @@ class BQChatSessionsTable(BigQueryTable):
                 created_at
             from {self.project_id}.{self.dataset_id}.{self.name}
             where user_id = '{user_id}'
-            order by chat_session_id asc
+            order by chat_session_id desc
         """
 
         rows_iterator = query_data(query)
