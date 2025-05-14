@@ -8,10 +8,10 @@ from assistant_agent.config import APIConfig
 
 
 # Logger configuration
-if "logger_configured_login_page" not in st.session_state:
+if "logger_level_configured" not in st.session_state:
     logger.remove()
     logger.add(sys.stderr, level="INFO")
-    st.session_state.logger_configured_login_page = True
+    st.session_state.logger_level_configured = True
 
 backend_config = APIConfig()
 pages_config = PagesConfig()

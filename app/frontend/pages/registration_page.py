@@ -6,10 +6,10 @@ from app.frontend.config import PagesConfig
 from assistant_agent.config import APIConfig
 
 
-if "logger_configured_main_app" not in st.session_state:
+if "logger_level_configured" not in st.session_state:
     logger.remove()
     logger.add(sys.stderr, level="INFO")
-    st.session_state.logger_configured_main_app = True
+    st.session_state.logger_level_configured = True
 
 
 backend_config = APIConfig()

@@ -1,15 +1,10 @@
 import streamlit as st
 from loguru import logger
 import requests
-import sys
 from app.frontend.utils import find_image_urls
 from app.frontend.config import PagesConfig
 from assistant_agent.config import APIConfig
 
-
-# Setting the logs level
-logger.remove()
-logger.add(sys.stderr, level="INFO")
 
 backend_config = APIConfig()
 pages_config = PagesConfig()
