@@ -17,7 +17,7 @@ from assistant_agent.schemas import (
     PromptData,
 )
 from assistant_agent.agent import generate_agent_instance
-from assistant_agent.auxiliars.agent_auxiliars import (
+from assistant_agent.utils.agent_auxiliars import (
     prepare_to_read_chat_history,
     get_new_agent_steps,
 )
