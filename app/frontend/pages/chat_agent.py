@@ -39,7 +39,7 @@ if not st.session_state.get("logged_in") or not st.session_state.get("access_tok
             "Go to Registration", key="chat_goto_reg", use_container_width=True
         ):
             st.switch_page(pages_config.registration)
-    st.stop()  # Detener la ejecución de esta página si no está logueado
+    st.stop()  # Stop execution if not logged
 
 
 # Log out button in the lateral bar
@@ -48,14 +48,11 @@ with st.sidebar:
     st.write(f"Welcome, {first_name}!")
     if st.session_state.get("user_email"):
         st.caption(f"Email: {st.session_state.get('user_email')}")
-    if st.session_state.get("user_id"):
-        st.caption(f"UserID: {st.session_state.get('user_id')}")
 
     if st.button("Logout", key="logout_button_chat", use_container_width=True):
         logger.info(f"{first_name} logging out.")
         keys_to_clear = [
             "logged_in",
-            "user_id",
             "user_full_name",
             "user_email",
             "access_token",
