@@ -11,6 +11,10 @@ pages_config = PagesConfig()
 
 
 ask_agent_url = backend_config.BASE_URL + backend_config.AGENT_REQUEST_ENDPOINT
+chat_sessions_url = backend_config.BASE_URL + backend_config.CHAT_SESSIONS_ENDPOINT
+chat_history_url = (
+    backend_config.BASE_URL + backend_config.CHAT_SESSION_HISTORY_ENDPOINT
+)
 
 # --- Page protection and logout y Logout ---
 st.set_page_config(
@@ -41,14 +45,84 @@ if not st.session_state.get("logged_in") or not st.session_state.get("access_tok
             st.switch_page(pages_config.registration)
     st.stop()  # Stop execution if not logged
 
+############ Initialize session variables #######################
+# Track if a prompt is being processed
+if "processing_request" not in st.session_state:
+    st.session_state.processing_request = False
+# Temporal storage of the current prompt
+if "active_prompt" not in st.session_state:
+    st.session_state.active_prompt = None
+# Visual chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "chat_session_id" not in st.session_state:
+    # Start with an empty session_id
+    st.session_state.chat_session_id = None
 
-# Log out button in the lateral bar
+# Sidebar
 with st.sidebar:
+    first_name = st.session_state.get("user_full_name", "User").split()[0]
+    st.write(f"Welcome, {first_name}!")
+
+    if st.button("New Chat", key="new_chat_button", use_container_width=True):
+        st.session_state.chat_session_id = None
+        st.session_state.messages = list()
+
+    st.markdown("---")
+
+    # Setting the user sessions
+    headers = {"Authorization": f"bearer {st.session_state.access_token}"}
+    sessions_response = requests.get(chat_sessions_url, headers=headers)
+
+    user_sessions = sessions_response.json()
+
+    if len(user_sessions) > 0:
+        for session_number, session_data in enumerate(user_sessions):
+            if st.button(
+                f"Session {session_data['chat_session_id']}",
+                key=f"session_button_{session_number}",
+                use_container_width=True,
+            ):
+                # Save the chat_session_id in the state of the session
+                st.session_state.chat_session_id = session_data["chat_session_id"]
+                # Reset the messages in the UI to show only the current history
+                st.session_state.messages = list()
+
+                # Retrieve the chat session history
+                chat_history_url = chat_history_url.replace(
+                    "{chat_session_id}", st.session_state.chat_session_id
+                )
+                session_history_response = requests.get(
+                    chat_history_url, headers=headers
+                )
+
+                session_history = session_history_response.json()
+                session_messages = []
+
+                # Prepare the messages to be displayed in the UI
+                for message in session_history:
+                    user_message = {"role": "user", "content": message["prompt"]}
+                    assistant_message = {
+                        "role": "assistant",
+                        "content": message["response"],
+                        "image_urls": find_image_urls(message["response"]),
+                    }
+                    session_messages.append(user_message)
+                    session_messages.append(assistant_message)
+
+                # Store all the session messages in the session state to be displayed in the UI
+                st.session_state.messages = session_messages
+
+    else:
+        st.write("No sessions yet")
+
+    st.markdown("---")
     first_name = st.session_state.get("user_full_name", "User").split()[0]
     st.write(f"Welcome, {first_name}!")
     if st.session_state.get("user_email"):
         st.caption(f"Email: {st.session_state.get('user_email')}")
 
+    # Log out button in the lateral bar
     if st.button("Logout", key="logout_button_chat", use_container_width=True):
         logger.info(f"{first_name} logging out.")
         keys_to_clear = [
@@ -57,10 +131,9 @@ with st.sidebar:
             "user_email",
             "access_token",
             "messages",
-            "formatted_chat_history",
+            "chat_session_id",
             "active_prompt",
             "processing_request",
-            "registered_user_info",
         ]
         for key in keys_to_clear:
             if key in st.session_state:
@@ -73,24 +146,6 @@ with st.sidebar:
 st.title("Image Generation Agent")
 st.write("Ask the agent to generate images based on your ideas.")
 
-
-# Track if a prompt is being processed
-if "processing_request" not in st.session_state:
-    st.session_state.processing_request = False
-# Temporal storage of the current prompt
-if "active_prompt" not in st.session_state:
-    st.session_state.active_prompt = None
-
-# Visual chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-# History in the required format by the API
-if "formatted_chat_history" not in st.session_state:
-    # Initializing an empty chat history
-    st.session_state.formatted_chat_history = "[]"  # Required by the agent API
-if "chat_session_id" not in st.session_state:
-    # Start with an empty session_id
-    st.session_state.chat_session_id = None
 
 # Show chat session history
 for message in st.session_state.messages:
@@ -145,9 +200,6 @@ if st.session_state.processing_request and st.session_state.active_prompt:
 
     try:
         with st.spinner("Agent is thinking..."):
-            # Get the whole chat history
-            previous_formatted_history = st.session_state.formatted_chat_history
-
             # Get the chat_session_id
             previous_chat_session_id = st.session_state.chat_session_id
 
@@ -155,7 +207,6 @@ if st.session_state.processing_request and st.session_state.active_prompt:
 
             payload = {
                 "current_user_prompt": prompt_to_process,
-                "chat_history": previous_formatted_history,
                 "chat_session_id": previous_chat_session_id,
             }
             logger.debug("Payload created")
@@ -171,13 +222,9 @@ if st.session_state.processing_request and st.session_state.active_prompt:
 
                     # Extract agent data
                     agent_response_text = response_data["agent_response"]
-                    new_formatted_history = response_data["current_history"]
                     new_chat_session_id = response_data["chat_session_id"]
 
                     logger.info(f"Agent responded: '{agent_response_text}'")
-
-                    # Update chat history formatted
-                    st.session_state.formatted_chat_history = new_formatted_history
 
                     # Update chat_sesion_id
                     st.session_state.chat_session_id = new_chat_session_id
