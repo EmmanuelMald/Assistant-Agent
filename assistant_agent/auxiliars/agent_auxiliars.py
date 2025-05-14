@@ -1,21 +1,19 @@
 from pydantic_core import to_jsonable_python
 from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelMessage
-import json
 
 
-def prepare_to_read_chat_history(chat_history: str) -> list[ModelMessage]:
+def prepare_to_read_chat_history(chat_history: list[dict]) -> list[ModelMessage]:
     """
-    Convert a chat sessions that is obtained in a json string format into a list[ModelMessage]
-    that the agent can read during chat sessions.
+    Convert a chat session history that is obtained as a list of dictionaries and
+    transform it into a list[ModelMessage] that the agent can read during chat sessions.
 
     Args:
-        chat_history: str -> JSON string containing all the chat session history
+        chat_history: list[dict] -> list of dictionaries obtained fron the database, this contains all the
+                                    agent steps, not only the answer/response
 
     Returns:
         list[ModelMessage] -> List of ModelMessage objects that the agent can process
     """
-    # Convert the JSON string into a list of dictionaries
-    chat_history = json.loads(chat_history)
 
     # Validates the structure of the python objects
     chat_history = to_jsonable_python(chat_history)
