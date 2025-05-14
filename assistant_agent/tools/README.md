@@ -19,5 +19,3 @@ When the images are generated, automatically are stored into GCS (Google Cloud S
 ## 
 
 **Both tools are capable of use parallelization to generate N promts/images at once**
-
-
