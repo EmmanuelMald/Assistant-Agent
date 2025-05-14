@@ -1,5 +1,6 @@
 from pydantic_core import to_jsonable_python
 from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelMessage
+import json
 
 
 def prepare_to_read_chat_history(chat_history: list[dict]) -> list[ModelMessage]:
@@ -22,6 +23,27 @@ def prepare_to_read_chat_history(chat_history: list[dict]) -> list[ModelMessage]
     chat_history = ModelMessagesTypeAdapter.validate_python(chat_history)
 
     return chat_history
+
+
+def get_new_agent_steps(previous_steps: list[dict], all_steps: bytes):
+    """
+    Process the previous_steps and the new one to store only the new history generated
+
+    Args:
+        previous_steps: list[dict] -> List of dictionaries, each dictionary is an agent step
+                                        that was already stored in the database
+        all_steps: bytes -> binary string obtained after making agent.all_messages_json()
+
+    Returns: -> list[dict] -> List of the new agent steps generated
+    """
+    # Convert it into a list of dictionaries
+    all_steps = json.loads(all_steps)
+
+    number_new_steps = len(previous_steps) - len(all_steps)  # always a negative number
+
+    new_steps = all_steps[number_new_steps:]
+
+    return new_steps
 
 
 def prepare_to_send_chat_history(chat_history: bytes) -> str:
