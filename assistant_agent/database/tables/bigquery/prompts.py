@@ -5,7 +5,7 @@ from assistant_agent.database.tables.bigquery import (
 )
 from assistant_agent.utils.gcp.bigquery import insert_rows, query_data
 from assistant_agent.config import GCPConfig
-from assistant_agent.schemas import Prompt
+from assistant_agent.schemas import Prompt, PromptData
 from loguru import logger
 from datetime import datetime
 
@@ -139,3 +139,70 @@ class BQPromptsTable(BigQueryTable):
             str -> prompt_id
         """
         return self._insert_row(prompt_data)
+
+    def get_prompts_from_user_session(
+        self, user_id: str, chat_session_id: str
+    ) -> list[PromptData]:
+        """
+        Returns all the prompt data of a chat session id
+
+        Args:
+            chat_session_id: str -> Id of the chat session
+            user_id: str -> Id of the user
+
+        Returns:
+            list[PromptData] -> Each entry is a prompt, containing the prompt,
+                                response, and when it was creaetd
+        """
+        if not self._users_table.user_exists(user_id):
+            raise ValueError("The user_id introduced does not exists")
+
+        if not self._chat_sessions_table.session_exists(chat_session_id):
+            raise ValueError("The chat_session_id does not exists")
+
+        logger.info(
+            "Verifying that the chat session owner corresponds to the user_id provided"
+        )
+        chat_session_owner_query = f"""
+            select
+                user_id
+            from {self.project_id}.{self.dataset_id}.{self._chat_sessions_table.name}
+            where {self._chat_sessions_table.primary_key} = '{chat_session_id}'
+        """
+
+        rows_iterator = query_data(chat_session_owner_query)
+
+        chat_session_owner = next(rows_iterator).user_id
+
+        if chat_session_owner != user_id:
+            raise ValueError("The chat session is not of the user_id provided")
+
+        # Getting the chat session historu
+        query = f"""
+                select
+                    prompt_id,
+                    chat_session_id,
+                    user_id,
+                    created_at,
+                    prompt,
+                    response
+                from {self.project_id}.{self.dataset_id}.{self.name}
+                where chat_session_id = '{chat_session_id}'
+                order by created_at asc
+            """
+
+        rows_iterator = query_data(query)
+
+        total_prompts = [
+            PromptData(
+                chat_session_id=row.chat_session_id,
+                prompt_id=row.prompt_id,
+                user_id=row.user_id,
+                created_at=row.created_at,
+                prompt=row.prompt,
+                response=row.response,
+            )
+            for row in rows_iterator
+        ]
+
+        return total_prompts
