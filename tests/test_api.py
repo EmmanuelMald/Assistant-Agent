@@ -61,11 +61,11 @@ def test_add_user_success():
 
     assert response.status_code == status.HTTP_201_CREATED
     response_data = response.json()
-    assert "user_id" in response_data
-    assert isinstance(response_data["user_id"], str)
-    assert response_data["message"] == "User successfully registered"
+    assert "access_token" in response_data
+    assert "token_type" in response_data
+    assert "bearer" in response_data["token_type"]
+    assert "username" in response_data
     assert "Location" in response.headers
-    assert f"/users/{response_data['user_id']}" in response.headers["Location"]
 
 
 def test_add_user_conflict_email_already_registered():
