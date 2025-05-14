@@ -2,7 +2,7 @@ from pydantic import SecretStr, EmailStr
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 import jwt
-from assistant_agent.auxiliars.auth_auxiliars import verify_password
+from assistant_agent.utils.auth_auxiliars import verify_password
 from assistant_agent.schemas import UserInDB
 from assistant_agent.credentials import get_auth_config
 from assistant_agent.database.tables.bigquery import BQUsersTable
