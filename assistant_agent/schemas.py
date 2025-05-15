@@ -86,9 +86,14 @@ class Prompt(BaseModel, validate_assignment=True):
 
 
 class AgentStep(BaseModel, validate_assignment=True):
+    step_id: str = Field(
+        default=None, description="ID of the step", pattern=r"^AST\d+-\d{8}$"
+    )
     chat_session_id: str = CHAT_SESSION_ID_FIELD
     prompt_id: str = PROMPT_ID_FIELD
-    created_at: datetime = Field(description="Time when the agent step was created")
+    created_at: datetime = Field(
+        default=None, description="Time when the agent step was created"
+    )
     step_data: dict = Field(
         description="Dictionary with all the data related to the agent's step"
     )
@@ -97,6 +102,13 @@ class AgentStep(BaseModel, validate_assignment=True):
     @classmethod
     def prepare_json(cls, value):
         return json.dumps(value)
+
+    @field_validator("created_at", mode="after")
+    @classmethod
+    def get_datetime_string(cls, value):
+        if isinstance(value, datetime):
+            return value.strftime(r"%Y-%m-%d %H:%M:%S")
+        return value
 
 
 class ChatSessionData(ChatSession):
