@@ -111,6 +111,7 @@ class BQAgentStepsTable(BigQueryTable):
             "chat_session_id": step_data.chat_session_id,
             "prompt_id": step_data.prompt_id,
             "step_data": step_data.step_data,
+            "created_at": step_data.created_at,
         }
 
         try:
@@ -157,6 +158,7 @@ class BQAgentStepsTable(BigQueryTable):
                 step_data
             from {self.project_id}.{self.dataset_id}.{self.name}
             where chat_session_id = '{chat_session_id}'
+            order by created_at asc
         """
 
         rows_iterator = query_data(query)

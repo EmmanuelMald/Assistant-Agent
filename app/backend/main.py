@@ -30,6 +30,7 @@ from assistant_agent.database.tables.bigquery import (
 )
 from assistant_agent.config import APIConfig
 import asyncio
+from datetime import datetime, timezone
 
 
 app = FastAPI()
@@ -108,12 +109,18 @@ async def agent_request(
 
         # As generate_new_row is a syncronous function, it will be executed in
         # different threads to reduce the execution time
+        # Due async executes generate_new_row() concurrently, it is needed to keep track
+        # of the order of the agent step, which is obtained through the created_at field
         storage_tasks = list()
         for new_step in new_steps:
+            now = datetime.now(timezone.utc)
+            current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
             agent_step = AgentStep(
-                chat_session_id=chat_session_id, prompt_id=prompt_id, step_data=new_step
+                chat_session_id=chat_session_id,
+                prompt_id=prompt_id,
+                step_data=new_step,
+                created_at=current_time,
             )
-
             task = asyncio.to_thread(
                 agent_steps_table.generate_new_row,
                 agent_step,

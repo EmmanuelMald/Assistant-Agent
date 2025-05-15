@@ -88,6 +88,7 @@ class Prompt(BaseModel, validate_assignment=True):
 class AgentStep(BaseModel, validate_assignment=True):
     chat_session_id: str = CHAT_SESSION_ID_FIELD
     prompt_id: str = PROMPT_ID_FIELD
+    created_at: datetime = Field(description="Time when the agent step was created")
     step_data: dict = Field(
         description="Dictionary with all the data related to the agent's step"
     )
