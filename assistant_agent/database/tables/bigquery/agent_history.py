@@ -163,7 +163,7 @@ class BQAgentStepsTable(BigQueryTable):
                 step_data
             from {self.project_id}.{self.dataset_id}.{self.name}
             where chat_session_id = '{chat_session_id}'
-            order by created_at asc
+            order by {self.primary_key} asc
         """
 
         rows_iterator = query_data(query)
