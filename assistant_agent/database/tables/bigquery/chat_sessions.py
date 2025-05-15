@@ -4,7 +4,7 @@ from assistant_agent.schemas import ChatSession, ChatSessionData
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.config import GCPConfig
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 
 gcp_config = GCPConfig()
@@ -102,7 +102,7 @@ class BQChatSessionsTable(BigQueryTable):
         logger.info("Inserting data...")
 
         # Get the current date and time
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
 
         # Preparing the columns to fill in the BigQuery table

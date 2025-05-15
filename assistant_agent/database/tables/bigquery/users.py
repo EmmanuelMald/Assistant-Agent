@@ -3,7 +3,7 @@ from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.utils.auth_auxiliars import get_password_hash
 from assistant_agent.config import GCPConfig
 from assistant_agent.schemas import User, UserInDB
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 from pydantic import SecretStr
 from typing import Optional
@@ -141,7 +141,7 @@ class BQUsersTable(BigQueryTable):
         logger.info("Inserting user data into BigQuery...")
 
         # Get the current date and time
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
 
         logger.info("Generating a new user ID...")
