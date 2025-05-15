@@ -43,20 +43,27 @@ class BQPromptsTable(BigQueryTable):
         if not self._chat_sessions_table.session_exists(chat_session_id):
             raise ValueError("Chat Session ID does not exist")
 
-        # Query the BigQuery database to get the total number of prompts in the DB
-        query = f"""
-            select
-                count(*) as total_prompts
+        # Get the last prompt number generated
+        query_last_id = f"""
+                select
+                    cast(regexp_extract({self.primary_key}, r"\d+$") as numeric) as last_id
+                from {self.project_id}.{self.dataset_id}.{self.name}
+                where created_at = (
+                    select 
+                        max(created_at) 
+                     from {self.project_id}.{self.dataset_id}.{self.name}
+                    )
+                """
 
-            from {self.project_id}.{self.dataset_id}.{self.name}
-        """
-
-        rows_iterator = query_data(query)
-
-        total_prompts = next(rows_iterator).total_prompts
+        # Query the BigQuery database to get the last id of the last user created
+        rows_iterator = query_data(query_last_id)
+        try:
+            last_id = int(next(rows_iterator).last_id)
+        except StopIteration:
+            last_id = 0
 
         # Generating the user ID
-        next_id = total_prompts + 1
+        next_id = last_id + 1
 
         prompt_id = f"PID{next_id:06d}"
         logger.info(f"{prompt_id = }")
