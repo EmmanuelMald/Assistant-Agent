@@ -117,8 +117,6 @@ with st.sidebar:
         st.write("No sessions yet")
 
     st.markdown("---")
-    first_name = st.session_state.get("user_full_name", "User").split()[0]
-    st.write(f"Welcome, {first_name}!")
     if st.session_state.get("user_email"):
         st.caption(f"Email: {st.session_state.get('user_email')}")
 

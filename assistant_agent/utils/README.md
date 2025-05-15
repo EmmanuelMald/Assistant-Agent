@@ -1,0 +1,1 @@
+Functions that are not fully related to the AI Agent capacity and that can be reused in other projects

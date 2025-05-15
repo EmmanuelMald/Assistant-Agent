@@ -1,41 +1,28 @@
-# SciDesign Bot - STEM T-Shirt Prompt Generator Agent
+# AI Agent - Image Generator
+
 ## Overview
-SciDesign Bot is an AI agent built using the pydantic-ai framework. Its primary purpose is to assist users in generating detailed and creative prompts suitable for AI image generation models (like Midjourney, DALL-E, Stable Diffusion, etc.). These prompts are specifically designed to create visually appealing graphics for t-shirts with themes related to Science, Technology, Engineering, and Math (STEM).
 
-The agent acts as an expert prompt engineer, taking a user's basic STEM concept and expanding it into a rich description that includes visual details and a specific artistic style.
+This AI Agent was built to address two of the main problems when a user tries to generate an image with AI:
 
-## How It Works
-***Initialization***: 
+- Generating the right prompt to get what the user wants
 
-The agent is configured with a Google Gemini model (GeminiModel) via the GoogleGLAProvider. It includes a specific system prompt that defines its role ("SciDesign Bot") and instructs it on how to behave and use its tools.
+- Generate more than one image per user request (if asked to), which can also be of different topics each.
 
-***Core Tool***: The agent's main capability comes from the generate_prompt_image tool. This Python function:
+Is capable of generate different images with different styles, but is mainly focus on generate realistic images.
 
-Takes the core STEM concept (the "main idea") as input.
+This agent is deployed in [**Google Cloud Platform**](https://cloud.google.com/?hl=en), so you can test it by just register for free [**here**](https://agent-app-214571216460.northamerica-south1.run.app) - *The images, once generated, will be deleted after 7 days.*
 
-Uses the Gemini API (specifically configured with another detailed system prompt focused only on prompt generation) to craft the image prompt.
+## Key Components and Technologies
 
-Returns the generated prompt string.
+The AI Agent was built using the [**PydanticAI**](https://ai.pydantic.dev/) agent framework, and some of the [**Gemini**](https://gemini.google.com/app) models, mainly [**Gemini 2.5 Pro**](https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro) and [**Imagen 3**](https://ai.google.dev/gemini-api/docs/imagen).
 
-***User Interaction***:
+The Cloud infrastructure was developed using [**Terraform**](https://developer.hashicorp.com/terraform) and deployed through *CICD* pipelines with [**CloudBuild**](https://cloud.google.com/build?hl=en).
 
-A user invokes the agent using agent.run_sync(user_query).
+The app was containerized using [**Docker**](https://www.docker.com/) and deployed on two serverless instances on [**CloudRun**](https://cloud.google.com/run?hl=en):
 
-The user_query tells the agent the user's intent (e.g., "Help me generate a prompt...").
 
-Guided by its system prompt, the agent identifies that the generate_prompt_image tool should be used and that the required main_idea is available in the deps.
+- One related to the API that contains all the logic of the AI Agent (built with [**FastAPI**](https://fastapi.tiangolo.com/) and secured using [**JWT**](https://jwt.io/introduction)).
 
-The agent executes the generate_prompt_image tool, passing the context.
+- Other related to the frontend section (built with [**Streamlit**](https://streamlit.io/)).
 
-The final output presented to the user is the detailed image generation prompt returned by the tool.
-
-## Key Components & Technologies
-- **Framework**: pydantic-ai
-
-- **LLM Provider**: Google Gemini (google-generativeai SDK, GoogleGLAProvider)
-
-- **Core Logic**: Python
-
-- **Logging**: loguru
-
-- **Tooling**: Custom generate_prompt_image function utilizing the Gemini API.
+All the chat sessions data are stored on [**BigQuery**](https://cloud.google.com/bigquery?hl=en), whereas the generated images are stored in [**Google Cloud Storage**](https://cloud.google.com/storage?hl=en) buckets - which are automatically deleted after 7 days.

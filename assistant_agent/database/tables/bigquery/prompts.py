@@ -7,7 +7,7 @@ from assistant_agent.utils.gcp.bigquery import insert_rows, query_data
 from assistant_agent.config import GCPConfig
 from assistant_agent.schemas import Prompt, PromptData
 from loguru import logger
-from datetime import datetime
+from datetime import datetime, timezone
 
 gcp_config = GCPConfig()
 
@@ -102,7 +102,7 @@ class BQPromptsTable(BigQueryTable):
         logger.info("Inserting data...")
 
         # Get the current date and time
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
 
         data_to_insert = {
