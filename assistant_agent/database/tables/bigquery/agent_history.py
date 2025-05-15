@@ -3,6 +3,7 @@ from assistant_agent.database.tables.bigquery import BQPromptsTable, BQChatSessi
 from assistant_agent.config import GCPConfig
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.schemas import AgentStep
+from datetime import datetime, timezone
 from loguru import logger
 import re
 
@@ -87,27 +88,21 @@ class BQAgentStepsTable(BigQueryTable):
 
         return id_exists
 
-    def _insert_row(self, step_data: AgentStep):
+    def _insert_row(self, step_data: AgentStep) -> None:
         """
-        Insert the data related to the agent step into BigQuery
+        Insert the data related to the agent step into BigQuery, it
+        suppose that all the step_data is correctly set
 
         Args:
             step_data: AgentStep -> Info related to the step
 
         Returns:
-            str -> step_id
+            None
         """
-        logger.info("Generating step_id...")
-        # _generate_id has error handlers for its parameters
-        step_id = self._generate_id(
-            prompt_id=step_data.prompt_id,
-            chat_session_id=step_data.chat_session_id,
-        )
-
         logger.info("Inserting data...")
 
         data_to_insert = {
-            "step_id": step_id,
+            "step_id": step_data.step_id,
             "chat_session_id": step_data.chat_session_id,
             "prompt_id": step_data.prompt_id,
             "step_data": step_data.step_data,
@@ -126,19 +121,29 @@ class BQAgentStepsTable(BigQueryTable):
         except Exception as e:
             raise ValueError(f"Error while inserting prompt's data into BigQuery: {e}")
 
-        return step_id
-
-    def generate_new_row(self, step_data: AgentStep):
+    def generate_new_row(self, step_data: AgentStep) -> str:
         """
         Public method to generate a new row in the agent_steps table
 
         Args:
-            step_data: AgentStep -> Info related to the step
+            step_data: AgentStep -> Basic Info related to the step
 
         Returns:
             str -> step_id
         """
-        return self._insert_row(step_data)
+        # Generate step_id, already has error handlers for prompt_id and chat_session_id
+        step_id = self._generate_id(
+            prompt_id=step_data.prompt_id, chat_session_id=step_data.chat_session_id
+        )
+        logger.info(f"Generated {step_id = }")
+
+        # Store the new data into step_data
+        step_data.step_id = step_id
+        step_data.created_at = datetime.now(timezone.utc)
+
+        self._insert_row(step_data)
+
+        return step_id
 
     def get_chat_session_history(self, chat_session_id: str) -> list[dict]:
         """
