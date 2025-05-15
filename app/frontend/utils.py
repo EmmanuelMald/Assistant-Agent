@@ -14,6 +14,6 @@ def find_image_urls(text: str) -> list[str]:
     Returns:
         A list of found image URLs (strings). Returns an empty list if none are found.
     """
-    regex = r"(https://storage\.googleapis\.com/.+\.(?:png|jpg|jpeg|gif|webp|svg))"
+    regex = r"https://storage\.googleapis\.com/[\w/-]+\.png"
     urls = re.findall(regex, text)
     return urls

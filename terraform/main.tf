@@ -293,6 +293,12 @@ resource "google_bigquery_table" "ai_agent_steps_table" {
     "description": "Id of agent step"
   },
   {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Time when the step was created"
+  },
+  {
     "name": "step_data",
     "type": "JSON",
     "mode": "REQUIRED",
