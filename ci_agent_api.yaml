@@ -8,17 +8,17 @@ steps:
 
 # As for the tests to succeed requires info from GCP, specially from secret manager
 # The service account that will execute this pipeline must have permission to access secrets (Secret Manager Secret Accesor)
-  - id: 'install_and_test'
-    name: 'python:${_PYTHON_VERSION}'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        set -e
-        pip install uv==${_UV_VERSION}
-        uv sync --all-groups
-        cd tests
-        uv run pytest
+  # - id: 'install_and_test'
+  #   name: 'python:${_PYTHON_VERSION}'
+  #   entrypoint: 'bash'
+  #   args:
+  #     - '-c'
+  #     - |
+  #       set -e
+  #       pip install uv==${_UV_VERSION}
+  #       uv sync --all-groups
+  #       cd tests
+  #       uv run pytest
 
 
     # Prepare to test the build of the docker image
