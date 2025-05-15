@@ -28,18 +28,26 @@ class BQUsersTable(BigQueryTable):
         """
         Generates a new user id based on the current users registered in the DB
         """
-        query_count_users = f"""
+        query_last_id = f"""
                 select
-                    count(*) as total_users
+                    cast(regexp_extract({self.primary_key}, r"\d+$") as numeric) as last_id
                 from {self.project_id}.{self.dataset_id}.{self.name}
+                where created_at = (
+                    select 
+                        max(created_at) 
+                     from {self.project_id}.{self.dataset_id}.{self.name}
+                    )
                 """
 
-        # Query the BigQuery database to get the total number of users
-        rows = query_data(query=query_count_users)
-        total_users = [row.total_users for row in rows][0]
+        # Query the BigQuery database to get the last id of the last user created
+        rows_iterator = query_data(query_last_id)
+        try:
+            last_id = int(next(rows_iterator).last_id)
+        except StopIteration:
+            last_id = 0
 
         # Generating the user ID
-        next_id = total_users + 1
+        next_id = last_id + 1
         user_id = f"UID{next_id:05d}"
 
         return user_id
