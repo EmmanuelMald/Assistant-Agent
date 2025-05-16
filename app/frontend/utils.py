@@ -16,4 +16,5 @@ def find_image_urls(text: str) -> list[str]:
     """
     regex = r"https://storage\.googleapis\.com/[\w/-]+\.png"
     urls = re.findall(regex, text)
-    return urls
+
+    return list(dict.fromkeys(urls))
