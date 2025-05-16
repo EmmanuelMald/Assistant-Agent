@@ -5,9 +5,10 @@ from assistant_agent.database.tables.bigquery import (
 )
 from assistant_agent.utils.gcp.bigquery import insert_rows, query_data
 from assistant_agent.config import GCPConfig
-from assistant_agent.schemas import Prompt, PromptData
+from assistant_agent.schemas import Prompt
 from loguru import logger
 from datetime import datetime, timezone
+import re
 
 gcp_config = GCPConfig()
 
@@ -29,43 +30,37 @@ class BQPromptsTable(BigQueryTable):
     def primary_key(self):
         return self.__primary_key
 
-    def _generate_id(self, user_id: str, chat_session_id: str) -> str:
+    def _generate_id(self, chat_session_id: str) -> str:
         """
         Generates a prompt_id based on the user_id and chat_session_id
 
         Args:
-            user_id: str -> User ID
             chat_session_id: str -> ID of the chat session of the user
         """
-        if not self._users_table.user_exists(user_id):
-            raise ValueError("User ID does not exist")
-
         if not self._chat_sessions_table.session_exists(chat_session_id):
             raise ValueError("Chat Session ID does not exist")
 
         # Get the last prompt number generated
-        query_last_id = f"""
+        query = f"""
                 select
-                    cast(regexp_extract({self.primary_key}, r"\d+$") as numeric) as last_id
+                    count(*) as total_session_prompts
                 from {self.project_id}.{self.dataset_id}.{self.name}
-                where created_at = (
-                    select 
-                        max(created_at) 
-                     from {self.project_id}.{self.dataset_id}.{self.name}
-                    )
+                where chat_session_id = '{chat_session_id}'
                 """
 
-        # Query the BigQuery database to get the last id of the last user created
-        rows_iterator = query_data(query_last_id)
-        try:
-            last_id = int(next(rows_iterator).last_id)
-        except StopIteration:
-            last_id = 0
+        # Query the DB to get the number of prompts the chat_session_id has
+        rows_iterator = query_data(query)
+
+        total_session_prompts = next(rows_iterator).total_session_prompts
 
         # Generating the user ID
-        next_id = last_id + 1
+        next_id = total_session_prompts + 1
 
-        prompt_id = f"PID{next_id:06d}"
+        # Extract the first coincidence of the regular expression
+        user_part = re.search(r"\d+", chat_session_id)[0]
+        session_part = int(chat_session_id[-3:])
+
+        prompt_id = f"PID{user_part}{session_part}-{next_id:06d}"
         logger.info(f"{prompt_id = }")
 
         return prompt_id
@@ -101,25 +96,12 @@ class BQPromptsTable(BigQueryTable):
         logger.info("Generating prompt_id...")
 
         # _generate_id() already has error handers for its inputs
-        prompt_id = self._generate_id(
-            user_id=prompt_data.user_id, chat_session_id=prompt_data.chat_session_id
-        )
-        logger.info(f"{prompt_id = }")
+        prompt_data.prompt_id = self._generate_id(prompt_data.chat_session_id)
+        logger.info(f"prompt_id ={prompt_data.prompt_id}")
 
         logger.info("Inserting data...")
 
-        # Get the current date and time
-        now = datetime.now(timezone.utc)
-        current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
-
-        data_to_insert = {
-            "prompt_id": prompt_id,
-            "chat_session_id": prompt_data.chat_session_id,
-            "user_id": prompt_data.user_id,
-            "created_at": current_time,
-            "prompt": prompt_data.prompt,
-            "response": prompt_data.response,
-        }
+        prompt_data.created_at = datetime.now(timezone.utc)
 
         try:
             insert_rows(
@@ -127,13 +109,13 @@ class BQPromptsTable(BigQueryTable):
                 dataset_name=self.dataset_id,
                 project_id=self.project_id,
                 rows=[
-                    data_to_insert,
+                    prompt_data.model_dump(),
                 ],
             )
         except Exception as e:
             raise ValueError(f"Error while inserting prompt's data into BigQuery: {e}")
 
-        return prompt_id
+        return prompt_data.prompt_id
 
     def generate_new_row(self, prompt_data: Prompt) -> str:
         """
@@ -149,7 +131,7 @@ class BQPromptsTable(BigQueryTable):
 
     def get_prompts_from_user_session(
         self, user_id: str, chat_session_id: str
-    ) -> list[PromptData]:
+    ) -> list[Prompt]:
         """
         Returns all the prompt data of a chat session id
 
@@ -189,22 +171,20 @@ class BQPromptsTable(BigQueryTable):
                 select
                     prompt_id,
                     chat_session_id,
-                    user_id,
                     created_at,
                     prompt,
                     response
                 from {self.project_id}.{self.dataset_id}.{self.name}
                 where chat_session_id = '{chat_session_id}'
-                order by created_at asc
+                order by prompt_id asc
             """
 
         rows_iterator = query_data(query)
 
         total_prompts = [
-            PromptData(
-                chat_session_id=row.chat_session_id,
+            Prompt(
                 prompt_id=row.prompt_id,
-                user_id=row.user_id,
+                chat_session_id=row.chat_session_id,
                 created_at=row.created_at,
                 prompt=row.prompt,
                 response=row.response,
