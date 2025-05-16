@@ -1,26 +1,59 @@
+from pydantic.functional_serializers import PlainSerializer
 from pydantic import (
     BaseModel,
     Field,
     EmailStr,
-    field_validator,
     SecretStr,
+    BeforeValidator,
+    AfterValidator,
 )
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Annotated
 import json
 
 
+# Common Field Validators
+STRING_NORMALIZER = BeforeValidator(
+    lambda text: str(text).strip() if text is not None else None
+)
+UPPER_STRING = AfterValidator(lambda text: text.upper() if text is not None else None)
+
+
 # Common fields
-USER_ID_FIELD = Field(description="ID of the user", pattern=r"^UID\d{5}$")
-CHAT_SESSION_ID_FIELD = Field(
-    description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
-)
-PROMPT_ID_FIELD = Field(description="ID of the prompt.", pattern=r"^PID\d+-\d{6}$")
-PASSWORD_FIELD = Field(
-    description="User's password. Must be at least 8 characters long.",
-    min_length=8,
-)
-TIMESTAMP_FORMAT = r"%Y-%m-%d %H:%M:%S"
+USER_ID_FIELD = Annotated[
+    str,
+    Field(
+        default=None,  # In case this field is not included
+        description="ID of the user",
+        pattern=r"^UID\d{5}$",
+    ),
+    STRING_NORMALIZER,
+]
+CHAT_SESSION_ID_FIELD = Annotated[
+    str,
+    Field(
+        default=None,
+        description="ID of the user's chat session",
+        pattern=r"^CSID\d+-\d{3}$",
+    ),
+    STRING_NORMALIZER,
+]
+PROMPT_ID_FIELD = Annotated[
+    str,
+    Field(default=None, description="ID of the prompt.", pattern=r"^PID\d+-\d{6}$"),
+    STRING_NORMALIZER,
+]
+CREATED_AT_FIELD = Annotated[
+    datetime,
+    Field(
+        default=None,
+        description="Datetime when a resource was created",
+    ),
+    PlainSerializer(  # Tells pydantic when serializing (converting to a dict or a json string), use the function
+        lambda dt: dt.strftime(r"%Y-%m-%d %H:%M:%S"),
+        when_used="always",
+    ),
+]
 
 
 class User(BaseModel, validate_assignment=True):
@@ -29,92 +62,93 @@ class User(BaseModel, validate_assignment=True):
     when trying to login
     """
 
-    full_name: str = Field(
-        description="Full name of the user",
-        min_length=1,
-        pattern=r"^[^\s].*",  # To not start with a space
-    )
-    company_name: Optional[str] = Field(
-        default=None,  # Only in case this field is not passed
-        description="Name of the company where the user works for",
-        pattern=r"^[^\s].*",  # To not start with a space
-    )
-    email: EmailStr = Field(description="User's email")
-    company_role: Optional[str] = Field(
-        default=None,  # Only in case this field is not passed
-        description="Role that the user has in the company where he's working on",
-        pattern=r"^[^\s].*",  # To not start with a space
-    )
-    password: SecretStr = PASSWORD_FIELD
-
-    @field_validator("full_name", mode="after")
-    @classmethod
-    def normalize_full_name(cls, value):
-        return value.strip().title()
-
-    @field_validator("company_name", mode="after")
-    @classmethod
-    def normalize_company_name(cls, value):
-        if value not in [None, ""]:
-            return value.strip().upper()
-        return None
-
-    @field_validator("company_role", mode="after")
-    @classmethod
-    def normalize_company_role(cls, value):
-        if value not in [None, ""]:
-            return value.strip().upper()
-        return None
-
-
-class UserInDB(User):
-    user_id: str = USER_ID_FIELD
-    created_at: datetime = Field(
-        description=r"datetime.datetime object with the timestamp when the user was created in the DB",
-    )
+    user_id: USER_ID_FIELD
+    created_at: CREATED_AT_FIELD
+    full_name: Annotated[
+        str,
+        Field(
+            description="Full name of the user",
+            min_length=1,
+        ),
+        STRING_NORMALIZER,
+        AfterValidator(lambda text: text.title()),
+    ]
+    company_name: Annotated[
+        Optional[str],
+        Field(
+            default=None,  # Only in case this field is not passed
+            description="Name of the company where the user works for",
+            min_length=1,
+        ),
+        STRING_NORMALIZER,
+        UPPER_STRING,
+    ]
+    email: Annotated[EmailStr, Field(description="User's email")]
+    company_role: Annotated[
+        Optional[str],
+        Field(
+            default=None,  # Only in case this field is not passed
+            description="Role that the user has in the company where he's working on",
+        ),
+        STRING_NORMALIZER,
+        UPPER_STRING,
+    ]
+    password: Annotated[
+        SecretStr,
+        Field(
+            description="User's password. Must be at least 8 characters long.",
+            min_length=8,
+        ),
+        PlainSerializer(
+            lambda password: password.get_secret_value(),
+            when_used="always",
+        ),
+    ]
 
 
 class ChatSession(BaseModel, validate_assignment=True):
-    user_id: str = USER_ID_FIELD
+    user_id: USER_ID_FIELD
+    chat_session_id: CHAT_SESSION_ID_FIELD
+    created_at: CREATED_AT_FIELD
 
 
 class Prompt(BaseModel, validate_assignment=True):
-    chat_session_id: str = CHAT_SESSION_ID_FIELD
-    prompt: str = Field(description="User's prompt", pattern=r"^\w.*", min_length=1)
-    response: str = Field(description="Agent response")
+    prompt_id: PROMPT_ID_FIELD
+    created_at: CREATED_AT_FIELD
+    chat_session_id: CHAT_SESSION_ID_FIELD
+    prompt: Annotated[
+        str,
+        Field(
+            description="User's prompt",
+            min_length=1,
+        ),
+        STRING_NORMALIZER,
+    ]
+    response: Annotated[
+        str,
+        Field(description="Agent response"),
+        STRING_NORMALIZER,
+    ]
 
 
 class AgentStep(BaseModel, validate_assignment=True):
-    step_id: str = Field(
-        default=None, description="ID of the step", pattern=r"^AST\d+-\d{8}$"
-    )
-    chat_session_id: str = CHAT_SESSION_ID_FIELD
-    prompt_id: str = PROMPT_ID_FIELD
-    created_at: datetime = Field(
-        default=None, description="Time when the agent step was created"
-    )
-    step_data: dict = Field(
-        description="Dictionary with all the data related to the agent's step"
-    )
-
-    @field_validator("step_data", mode="after")
-    @classmethod
-    def prepare_json(cls, value):
-        return json.dumps(value)
-
-    @field_validator("created_at", mode="after")
-    @classmethod
-    def get_datetime_string(cls, value):
-        if isinstance(value, datetime):
-            return value.strftime(r"%Y-%m-%d %H:%M:%S")
-        return value
-
-
-class ChatSessionData(ChatSession):
-    chat_session_id: str = CHAT_SESSION_ID_FIELD
-    created_at: datetime = Field(description="Datetime when the session was created")
-
-
-class PromptData(Prompt):
-    prompt_id: str = PROMPT_ID_FIELD
-    created_at: datetime = Field(description="Datetime when the prompt was created")
+    step_id: Annotated[
+        str,
+        Field(
+            default=None,
+            description="ID of the step",
+            pattern=r"^AST\d+-\d{8}$",
+        ),
+        STRING_NORMALIZER,
+    ]
+    chat_session_id: CHAT_SESSION_ID_FIELD
+    prompt_id: PROMPT_ID_FIELD
+    created_at: CREATED_AT_FIELD
+    step_data: Annotated[
+        dict,
+        Field(description="Dictionary with all the data related to the agent's step"),
+        PlainSerializer(  # Tells pydantic when serializing (converting to a dict or a json string), use the function
+            lambda dict_data: json.dumps(dict_data),
+            when_used="always",
+        ),
+    ]
