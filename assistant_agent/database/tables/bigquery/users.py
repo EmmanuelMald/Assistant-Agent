@@ -2,7 +2,7 @@ from .bq_base import BigQueryTable
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.utils.auth_auxiliars import get_password_hash
 from assistant_agent.config import GCPConfig
-from assistant_agent.schemas import User, UserInDB
+from assistant_agent.schemas import User
 from datetime import datetime, timezone
 from loguru import logger
 from pydantic import SecretStr
@@ -98,7 +98,7 @@ class BQUsersTable(BigQueryTable):
         except StopIteration:
             return None
 
-    def get_user_data(self, user_id: str) -> Optional[UserInDB]:
+    def get_user_data(self, user_id: str) -> Optional[User]:
         """
         Returns the user data if the user_id exists
 
@@ -106,7 +106,7 @@ class BQUsersTable(BigQueryTable):
             user_id: str -> Id of the user
 
         Returns:
-            Optional[UserInDB] -> UserInDB if the email is registered
+            Optional[User] -> Data of the user if the email is registered
         """
         query = f"""
             select
@@ -121,7 +121,7 @@ class BQUsersTable(BigQueryTable):
             # Try to get the first element (row) of the rows_iterator
             user_data = next(rows_iterator)
 
-            userdb = UserInDB(
+            userdb = User(
                 user_id=user_data.user_id,
                 full_name=user_data.full_name,
                 email=user_data.email,
@@ -149,12 +149,11 @@ class BQUsersTable(BigQueryTable):
         logger.info("Inserting user data into BigQuery...")
 
         # Get the current date and time
-        now = datetime.now(timezone.utc)
-        current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
+        user_data.created_at = datetime.now(timezone.utc)
 
         logger.info("Generating a new user ID...")
-        user_id = self._generate_id()
-        logger.info(f"Generated user ID: {user_id}")
+        user_data.user_id = self._generate_id()
+        logger.info(f"Generated user ID: {user_data.user_id}")
 
         logger.info("Inserting data...")
 
@@ -162,15 +161,12 @@ class BQUsersTable(BigQueryTable):
         user_data.password = get_password_hash(user_data.password)
 
         # Preparing the columns to fill in the BigQuery table
-        data_to_insert = {
-            "user_id": user_id,
-            "full_name": user_data.full_name,
-            "company_name": user_data.company_name,
-            "email": user_data.email,
-            "company_role": user_data.company_role,
-            "created_at": current_time,
-            "hashed_password": user_data.password.get_secret_value(),  # Hashed password
-        }
+        data_to_insert = user_data.model_dump(exclude_none=True)
+
+        del data_to_insert["password"]
+        data_to_insert.update(
+            {"hashed_password": user_data.password.get_secret_value()}
+        )
 
         try:
             insert_rows(
@@ -184,7 +180,7 @@ class BQUsersTable(BigQueryTable):
         except Exception as e:
             raise ValueError(f"Error while inserting user's data into BigQuery: {e}")
 
-        return user_id
+        return user_data.user_id
 
     def generate_new_row(self, user_data: User) -> str:
         """
