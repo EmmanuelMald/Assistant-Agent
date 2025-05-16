@@ -99,10 +99,6 @@ class User(BaseModel, validate_assignment=True):
             description="User's password. Must be at least 8 characters long.",
             min_length=8,
         ),
-        PlainSerializer(
-            lambda password: password.get_secret_value(),
-            when_used="always",
-        ),
     ]
 
 
