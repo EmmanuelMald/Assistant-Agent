@@ -15,7 +15,7 @@ USER_ID_FIELD = Field(description="ID of the user", pattern=r"^UID\d{5}$")
 CHAT_SESSION_ID_FIELD = Field(
     description="ID of the user's chat session", pattern=r"^CSID\d+-\d{3}$"
 )
-PROMPT_ID_FIELD = Field(description="ID of the prompt.", pattern=r"^PID\d{6}$")
+PROMPT_ID_FIELD = Field(description="ID of the prompt.", pattern=r"^PID\d+-\d{6}$")
 PASSWORD_FIELD = Field(
     description="User's password. Must be at least 8 characters long.",
     min_length=8,
@@ -80,7 +80,6 @@ class ChatSession(BaseModel, validate_assignment=True):
 
 class Prompt(BaseModel, validate_assignment=True):
     chat_session_id: str = CHAT_SESSION_ID_FIELD
-    user_id: str = USER_ID_FIELD
     prompt: str = Field(description="User's prompt", pattern=r"^\w.*", min_length=1)
     response: str = Field(description="Agent response")
 
