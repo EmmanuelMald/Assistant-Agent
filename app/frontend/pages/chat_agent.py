@@ -54,10 +54,14 @@ if "active_prompt" not in st.session_state:
     st.session_state.active_prompt = None
 # Visual chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = list()
 if "chat_session_id" not in st.session_state:
     # Start with an empty session_id
     st.session_state.chat_session_id = None
+if "user_chat_sessions" not in st.session_state:
+    st.session_state.user_chat_sessions = list()
+if "sessions_loaded" not in st.session_state:
+    st.session_state.sessions_loaded = False  # Flag that controls the load
 
 # Sidebar
 with st.sidebar:
@@ -67,24 +71,36 @@ with st.sidebar:
     if st.button("New Chat", key="new_chat_button", use_container_width=True):
         st.session_state.chat_session_id = None
         st.session_state.messages = list()
+        st.session_state.session_loaded = False
+        st.rerun()
 
     st.markdown("---")
 
-    # Setting the user sessions
-    headers = {"Authorization": f"bearer {st.session_state.access_token}"}
-    sessions_response = requests.get(chat_sessions_url, headers=headers)
+    if not st.session_state.sessions_loaded and st.session_state.access_token:
+        # Setting the user sessions
+        headers = {"Authorization": f"bearer {st.session_state.access_token}"}
+        sessions_response = requests.get(chat_sessions_url, headers=headers)
 
-    user_sessions = sessions_response.json()
+        if sessions_response.status_code == 200:
+            sessions_data = sessions_response.json()
+            st.session_state.user_chat_sessions = [
+                session_data["chat_session_id"] for session_data in sessions_data
+            ]
+            st.session_state.sessions_loaded = True
 
-    if len(user_sessions) > 0:
-        for session_number, session_data in enumerate(user_sessions):
+    if len(st.session_state.user_chat_sessions) > 0:
+        st.write("Chat Sessions:")
+        for session_number, session_id in enumerate(
+            st.session_state.user_chat_sessions
+        ):
             if st.button(
-                f"Session {session_data['chat_session_id']}",
+                f"Session {session_id}",
                 key=f"session_button_{session_number}",
                 use_container_width=True,
             ):
+                headers = {"Authorization": f"bearer {st.session_state.access_token}"}
                 # Save the chat_session_id in the state of the session
-                st.session_state.chat_session_id = session_data["chat_session_id"]
+                st.session_state.chat_session_id = session_id
                 # Reset the messages in the UI to show only the current history
                 st.session_state.messages = list()
 
@@ -112,6 +128,7 @@ with st.sidebar:
 
                 # Store all the session messages in the session state to be displayed in the UI
                 st.session_state.messages = session_messages
+                st.rerun()
 
     else:
         st.write("No sessions yet")
@@ -132,6 +149,8 @@ with st.sidebar:
             "chat_session_id",
             "active_prompt",
             "processing_request",
+            "user_chat_sessions",
+            "sessions_loaded",
         ]
         for key in keys_to_clear:
             if key in st.session_state:
@@ -223,6 +242,13 @@ if st.session_state.processing_request and st.session_state.active_prompt:
                     new_chat_session_id = response_data["chat_session_id"]
 
                     logger.info(f"Agent responded: '{agent_response_text}'")
+
+                    if (
+                        previous_chat_session_id is None
+                        and new_chat_session_id is not None
+                    ):
+                        st.session_state.sessions_loaded = False
+                        logger.info("New chat session created, reloading sessions")
 
                     # Update chat_sesion_id
                     st.session_state.chat_session_id = new_chat_session_id
