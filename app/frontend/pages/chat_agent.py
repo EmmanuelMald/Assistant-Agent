@@ -68,7 +68,12 @@ with st.sidebar:
     first_name = st.session_state.get("user_full_name", "User").split()[0]
     st.write(f"Welcome, {first_name}!")
 
-    if st.button("New Chat", key="new_chat_button", use_container_width=True):
+    if st.button(
+        "New Chat",
+        key="new_chat_button",
+        use_container_width=True,
+        disabled=st.session_state.processing_request,
+    ):
         st.session_state.chat_session_id = None
         st.session_state.messages = list()
         st.session_state.session_loaded = False
@@ -97,6 +102,7 @@ with st.sidebar:
                 f"Session {session_id}",
                 key=f"session_button_{session_number}",
                 use_container_width=True,
+                disabled=st.session_state.processing_request,
             ):
                 headers = {"Authorization": f"bearer {st.session_state.access_token}"}
                 # Save the chat_session_id in the state of the session
@@ -138,7 +144,12 @@ with st.sidebar:
         st.caption(f"Email: {st.session_state.get('user_email')}")
 
     # Log out button in the lateral bar
-    if st.button("Logout", key="logout_button_chat", use_container_width=True):
+    if st.button(
+        "Logout",
+        key="logout_button_chat",
+        use_container_width=True,
+        disabled=st.session_state.processing_request,
+    ):
         logger.info(f"{first_name} logging out.")
         keys_to_clear = [
             "logged_in",
@@ -174,7 +185,7 @@ for message in st.session_state.messages:
             and message["image_urls"]
         ):
             for url in message["image_urls"]:
-                st.image(url, width=300)
+                st.image(url, width=600)
 
 # User input
 user_prompt_input = st.chat_input(
