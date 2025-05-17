@@ -3,7 +3,6 @@ from assistant_agent.database.tables.bigquery import BQUsersTable
 from assistant_agent.schemas import ChatSession
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.config import GCPConfig
-import re
 from datetime import datetime, timezone
 from loguru import logger
 
@@ -56,10 +55,9 @@ class BQChatSessionsTable(BigQueryTable):
         next_id = total_user_sessions + 1
 
         # Extracting the user number from the user_id to generate a session_id
-        match = re.search(r"\d+", user_id)
-        user_number = int(match.group(0))
+        user_number = user_id[3:]
 
-        chat_session_id = f"CSID{user_number}-{next_id:03d}"
+        chat_session_id = f"CS{user_number}-{next_id:03d}"
         logger.info(f"Generated chat session ID: {chat_session_id}")
 
         return chat_session_id
