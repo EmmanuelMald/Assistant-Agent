@@ -25,7 +25,7 @@ USER_ID_FIELD = Annotated[
     Field(
         default=None,  # In case this field is not included
         description="ID of the user",
-        pattern=r"^UID\d{5}$",
+        pattern=r"^UID\d{4}[A-Z0-9]{6}$",
     ),
     STRING_NORMALIZER,
 ]

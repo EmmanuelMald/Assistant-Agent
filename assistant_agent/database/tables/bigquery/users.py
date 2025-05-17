@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from loguru import logger
 from pydantic import SecretStr
 from typing import Optional
+import string
+import secrets
 
 
 gcp_config = GCPConfig()
@@ -28,29 +30,17 @@ class BQUsersTable(BigQueryTable):
         """
         Generates a new user id based on the current users registered in the DB
         """
-        query_last_id = f"""
-                select
-                    cast(regexp_extract({self.primary_key}, r"\d+$") as numeric) as last_id
-                from {self.project_id}.{self.dataset_id}.{self.name}
-                where created_at = (
-                    select 
-                        max(created_at) 
-                     from {self.project_id}.{self.dataset_id}.{self.name}
-                    )
-                """
+        now = datetime.now(timezone.utc).strftime("%y%m")
+        options = string.ascii_uppercase + string.digits
+        random = "".join([secrets.choice(options) for i in range(6)])
+        proposed_id = f"UID{now}{random}"
 
-        # Query the BigQuery database to get the last id of the last user created
-        rows_iterator = query_data(query_last_id)
-        try:
-            last_id = int(next(rows_iterator).last_id)
-        except StopIteration:
-            last_id = 0
+        while True:
+            if not self.user_exists(proposed_id):
+                return proposed_id
 
-        # Generating the user ID
-        next_id = last_id + 1
-        user_id = f"UID{next_id:05d}"
-
-        return user_id
+            random = "".join([secrets.choice(options) for i in range(6)])
+            proposed_id = f"UID{now}{random}"
 
     def user_exists(self, user_id: str) -> bool:
         """
