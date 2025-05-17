@@ -137,7 +137,7 @@ class AgentStep(BaseModel, validate_assignment=True):
         Field(
             default=None,
             description="ID of the step",
-            pattern=r"^AST\d+-\d{8}$",
+            pattern=r"^AST\d{4}[A-Z0-9]{6}\d{7}-\d{3}$",
         ),
         STRING_NORMALIZER,
     ]
