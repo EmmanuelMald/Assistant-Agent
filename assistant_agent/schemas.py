@@ -58,6 +58,13 @@ CREATED_AT_FIELD = Annotated[
         when_used="always",
     ),
 ]
+PASSWORD_FIELD = Annotated[
+    SecretStr,
+    Field(
+        description="User's password. Must be at least 8 characters long.",
+        min_length=8,
+    ),
+]
 
 
 class User(BaseModel, validate_assignment=True):
@@ -97,13 +104,7 @@ class User(BaseModel, validate_assignment=True):
         STRING_NORMALIZER,
         UPPER_STRING,
     ]
-    password: Annotated[
-        SecretStr,
-        Field(
-            description="User's password. Must be at least 8 characters long.",
-            min_length=8,
-        ),
-    ]
+    password: PASSWORD_FIELD
 
 
 class ChatSession(BaseModel, validate_assignment=True):
