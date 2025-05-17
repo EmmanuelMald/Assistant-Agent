@@ -40,7 +40,7 @@ CHAT_SESSION_ID_FIELD = Annotated[
 ]
 PROMPT_ID_FIELD = Annotated[
     str,
-    Field(default=None, description="ID of the prompt.", pattern=r"^PID\d+-\d{6}$"),
+    Field(default=None, description="ID of the prompt.", pattern=r"^PID\d{13}-\d{4}$"),
     STRING_NORMALIZER,
 ]
 CREATED_AT_FIELD = Annotated[

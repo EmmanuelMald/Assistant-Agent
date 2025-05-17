@@ -8,7 +8,6 @@ from assistant_agent.config import GCPConfig
 from assistant_agent.schemas import Prompt
 from loguru import logger
 from datetime import datetime, timezone
-import re
 
 gcp_config = GCPConfig()
 
@@ -57,10 +56,9 @@ class BQPromptsTable(BigQueryTable):
         next_id = total_session_prompts + 1
 
         # Extract the first coincidence of the regular expression
-        user_part = re.search(r"\d+", chat_session_id)[0]
-        session_part = int(chat_session_id[-3:])
+        session_number = chat_session_id[2:].repace("-", "")
 
-        prompt_id = f"PID{user_part}{session_part}-{next_id:06d}"
+        prompt_id = f"PID{session_number}-{next_id:04d}"
         logger.info(f"{prompt_id = }")
 
         return prompt_id
