@@ -56,7 +56,7 @@ class BQPromptsTable(BigQueryTable):
         next_id = total_session_prompts + 1
 
         # Extract the first coincidence of the regular expression
-        session_number = chat_session_id[2:].repace("-", "")
+        session_number = chat_session_id[2:].replace("-", "")
 
         prompt_id = f"PID{session_number}-{next_id:04d}"
         logger.info(f"{prompt_id = }")
