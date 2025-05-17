@@ -180,7 +180,6 @@ class BQAgentStepsTable(BigQueryTable):
                 # Get the structure of the step_id variable
                 new_step_id = self._generate_id(
                     prompt_id=step_data.prompt_id,
-                    chat_session_id=step_data.chat_session_id,
                 )
                 # Extracting the initial step number
                 match = re.search(r"\d+$", new_step_id)

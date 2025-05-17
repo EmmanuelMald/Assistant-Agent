@@ -86,7 +86,6 @@ async def agent_request(
         logger.info("Storing prompt data...")
         prompt_data = Prompt(
             chat_session_id=chat_session_id,
-            user_id=current_user_id,
             prompt=request.current_user_prompt,
             response=agent_answer.output,
         )
