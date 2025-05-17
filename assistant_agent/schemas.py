@@ -34,7 +34,7 @@ CHAT_SESSION_ID_FIELD = Annotated[
     Field(
         default=None,
         description="ID of the user's chat session",
-        pattern=r"^CSID\d+-\d{3}$",
+        pattern=r"^CS\d{4}[A-Z0-9]{6}-\d{3}$",
     ),
     STRING_NORMALIZER,
 ]
