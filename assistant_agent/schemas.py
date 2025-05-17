@@ -21,7 +21,7 @@ UPPER_STRING = AfterValidator(lambda text: text.upper() if text is not None else
 
 # Common fields
 USER_ID_FIELD = Annotated[
-    str,
+    Optional[str],
     Field(
         default=None,  # In case this field is not included
         description="ID of the user",
@@ -30,7 +30,7 @@ USER_ID_FIELD = Annotated[
     STRING_NORMALIZER,
 ]
 CHAT_SESSION_ID_FIELD = Annotated[
-    str,
+    Optional[str],
     Field(
         default=None,
         description="ID of the user's chat session",
@@ -39,7 +39,7 @@ CHAT_SESSION_ID_FIELD = Annotated[
     STRING_NORMALIZER,
 ]
 PROMPT_ID_FIELD = Annotated[
-    str,
+    Optional[str],
     Field(
         default=None,
         description="ID of the prompt.",
@@ -134,7 +134,7 @@ class Prompt(BaseModel, validate_assignment=True):
 
 class AgentStep(BaseModel, validate_assignment=True):
     step_id: Annotated[
-        str,
+        Optional[str],
         Field(
             default=None,
             description="ID of the step",
