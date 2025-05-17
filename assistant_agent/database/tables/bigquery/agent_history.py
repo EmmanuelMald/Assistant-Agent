@@ -5,7 +5,6 @@ from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.schemas import AgentStep
 from datetime import datetime, timezone
 from loguru import logger
-import re
 
 gcp_config = GCPConfig()
 
@@ -181,13 +180,17 @@ class BQAgentStepsTable(BigQueryTable):
                 new_step_id = self._generate_id(
                     prompt_id=step_data.prompt_id,
                 )
-                # Extracting the initial step number
-                match = re.search(r"\d+$", new_step_id)
-                initial_step_number = int(match.group(0))
+
+                # Get the first next step number that belongs to the prompt_id
+                initial_step_number = int(new_step_id[-3:])
+
+                # Get the prompt number only once, because is the same prompt_id
+                prompt_number = step_data.prompt_id[3:].replace("-", "")
 
             # Generating a step_id
             next_step_number = initial_step_number + step_number
-            step_id = re.sub(r"\d{8}$", f"{next_step_number:08d}", new_step_id)
+
+            step_id = f"AST{prompt_number}-{next_step_number:03d}"
 
             # Getting the current date
             now = datetime.now(timezone.utc)
