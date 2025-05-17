@@ -65,6 +65,7 @@ PASSWORD_FIELD = Annotated[
         min_length=8,
     ),
 ]
+EMAIL_FIELD = Annotated[EmailStr, Field(description="User's email")]
 
 
 class User(BaseModel, validate_assignment=True):
@@ -94,7 +95,7 @@ class User(BaseModel, validate_assignment=True):
         STRING_NORMALIZER,
         UPPER_STRING,
     ]
-    email: Annotated[EmailStr, Field(description="User's email")]
+    email: EMAIL_FIELD
     company_role: Annotated[
         Optional[str],
         Field(
