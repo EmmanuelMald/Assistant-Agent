@@ -5,7 +5,6 @@ from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.schemas import AgentStep
 from datetime import datetime, timezone
 from loguru import logger
-import re
 
 gcp_config = GCPConfig()
 
@@ -27,13 +26,12 @@ class BQAgentStepsTable(BigQueryTable):
     def primary_key(self):
         return self.__primary_key
 
-    def _generate_id(self, prompt_id: str, chat_session_id: str) -> str:
+    def _generate_id(self, prompt_id: str) -> str:
         """
         Generate an agent_step_id
 
         Args:
             prompt_id: str -> ID of the prompt that generated the step
-            chat_session_id: str -> ID of the chat session where the prompt_id belongs to
 
         Returns:
             str -> agent_step_id
@@ -41,29 +39,25 @@ class BQAgentStepsTable(BigQueryTable):
         if not self._prompts_table.prompt_exists(prompt_id):
             raise ValueError("The prompt_id does not exist")
 
-        if not self._sessions_table.session_exists(chat_session_id):
-            raise ValueError("The chat_session_id does not exist")
-
         query = f"""
                 select
-                    count(*) as total_session_steps
+                    count(*) as total_prompt_steps
                 from {self.project_id}.{self.dataset_id}.{self.name}
-                where chat_session_id = '{chat_session_id}'
+                where prompt_id = '{prompt_id}'
                 """
 
-        # Query the BigQuery database to get the total number of sessions of the user
+        # Query the BigQuery database to get the total number of steps in the prompt
         row_iterator = query_data(query=query)
 
-        session_steps = next(row_iterator).total_session_steps
+        prompt_steps = next(row_iterator).total_prompt_steps
 
         # Generate the step_id
-        next_id = session_steps + 1
+        next_id = prompt_steps + 1
 
-        # Extracting the prompt number from the prompt_id to generate a step_id
-        match = re.search(r"\d+", prompt_id)
-        prompt_number = int(match.group(0))
+        # Extract the first numbers of the prompt_id
+        prompt_number = prompt_id[3:].replace("-", "")
 
-        step_id = f"AST{prompt_number}-{next_id:08d}"
+        step_id = f"AST{prompt_number}-{next_id:03d}"
         logger.info(f"{step_id = }")
 
         return step_id
@@ -101,21 +95,13 @@ class BQAgentStepsTable(BigQueryTable):
         """
         logger.info("Inserting data...")
 
-        data_to_insert = {
-            "step_id": step_data.step_id,
-            "chat_session_id": step_data.chat_session_id,
-            "prompt_id": step_data.prompt_id,
-            "step_data": step_data.step_data,
-            "created_at": step_data.created_at,
-        }
-
         try:
             insert_rows(
                 table_name=self.name,
                 dataset_name=self.dataset_id,
                 project_id=self.project_id,
                 rows=[
-                    data_to_insert,
+                    step_data.model_dump(),
                 ],
             )
         except Exception as e:
@@ -131,10 +117,9 @@ class BQAgentStepsTable(BigQueryTable):
         Returns:
             str -> step_id
         """
-        # Generate step_id, already has error handlers for prompt_id and chat_session_id
-        step_id = self._generate_id(
-            prompt_id=step_data.prompt_id, chat_session_id=step_data.chat_session_id
-        )
+        # Generate step_id, already has error handlers for prompt_id
+        # If the prompt exists is because the chat_session_id already existed
+        step_id = self._generate_id(step_data.prompt_id)
         logger.info(f"Generated {step_id = }")
 
         # Store the new data into step_data
@@ -194,15 +179,18 @@ class BQAgentStepsTable(BigQueryTable):
                 # Get the structure of the step_id variable
                 new_step_id = self._generate_id(
                     prompt_id=step_data.prompt_id,
-                    chat_session_id=step_data.chat_session_id,
                 )
-                # Extracting the initial step number
-                match = re.search(r"\d+$", new_step_id)
-                initial_step_number = int(match.group(0))
+
+                # Get the first next step number that belongs to the prompt_id
+                initial_step_number = int(new_step_id[-3:])
+
+                # Get the prompt number only once, because is the same prompt_id
+                prompt_number = step_data.prompt_id[3:].replace("-", "")
 
             # Generating a step_id
             next_step_number = initial_step_number + step_number
-            step_id = re.sub(r"\d{8}$", f"{next_step_number:08d}", new_step_id)
+
+            step_id = f"AST{prompt_number}-{next_step_number:03d}"
 
             # Getting the current date
             now = datetime.now(timezone.utc)

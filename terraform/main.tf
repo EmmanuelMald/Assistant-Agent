@@ -236,12 +236,6 @@ resource "google_bigquery_table" "ai_agent_prompts_table" {
     "description": "Id of the chat session"
   },
   {
-    "name": "user_id",
-    "type": "STRING",
-    "mode": "REQUIRED",
-    "description": "Id of the user who started the chat session"
-  },
-  {
     "name": "created_at",
     "type": "TIMESTAMP",
     "mode": "REQUIRED",
