@@ -35,12 +35,11 @@ class BQUsersTable(BigQueryTable):
         random = "".join([secrets.choice(options) for i in range(6)])
         proposed_id = f"UID{now}{random}"
 
-        while True:
-            if not self.user_exists(proposed_id):
-                return proposed_id
-
+        while self.user_exists(proposed_id):
             random = "".join([secrets.choice(options) for i in range(6)])
             proposed_id = f"UID{now}{random}"
+
+        return proposed_id
 
     def user_exists(self, user_id: str) -> bool:
         """
