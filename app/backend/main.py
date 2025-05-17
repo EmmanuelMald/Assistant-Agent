@@ -10,11 +10,9 @@ from app.backend.models import (
 )
 from assistant_agent.schemas import (
     User,
+    AgentStep,
     ChatSession,
     Prompt,
-    AgentStep,
-    ChatSessionData,
-    PromptData,
 )
 from assistant_agent.agent import generate_agent_instance
 from assistant_agent.utils.agent_auxiliars import (
@@ -88,7 +86,6 @@ async def agent_request(
         logger.info("Storing prompt data...")
         prompt_data = Prompt(
             chat_session_id=chat_session_id,
-            user_id=current_user_id,
             prompt=request.current_user_prompt,
             response=agent_answer.output,
         )
@@ -214,7 +211,7 @@ async def login_for_access_token(auth_form: OAuth2PasswordRequestForm = Depends(
     return TokenResponse(access_token=access_token, username=userdb.full_name)
 
 
-@app.get(api_config.CHAT_SESSIONS_ENDPOINT, response_model=list[ChatSessionData])
+@app.get(api_config.CHAT_SESSIONS_ENDPOINT, response_model=list[ChatSession])
 async def get_user_sessions(
     current_user_id: str = Depends(get_current_user_id_from_token),
 ):
@@ -235,7 +232,7 @@ async def get_user_sessions(
         )
 
 
-@app.get(api_config.CHAT_SESSION_HISTORY_ENDPOINT, response_model=list[PromptData])
+@app.get(api_config.CHAT_SESSION_HISTORY_ENDPOINT, response_model=list[Prompt])
 async def get_chat_history(
     chat_session_id: str, current_user_id: str = Depends(get_current_user_id_from_token)
 ):

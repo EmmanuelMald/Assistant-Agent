@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime, timedelta, timezone
 import jwt
 from assistant_agent.utils.auth_auxiliars import verify_password
-from assistant_agent.schemas import UserInDB
+from assistant_agent.schemas import User
 from assistant_agent.credentials import get_auth_config
 from assistant_agent.database.tables.bigquery import BQUsersTable
 from loguru import logger
@@ -14,7 +14,7 @@ auth_config = get_auth_config()
 users_table = BQUsersTable()
 
 
-def authenticate_user(email: EmailStr, password: SecretStr) -> Optional[UserInDB]:
+def authenticate_user(email: EmailStr, password: SecretStr) -> Optional[User]:
     """
     Decides if the user needs to be authenticated based on the existance of its database identifier, in this case,
     the email, and its password
@@ -24,7 +24,7 @@ def authenticate_user(email: EmailStr, password: SecretStr) -> Optional[UserInDB
         password: SecretStr -> User's password
 
     Returns:
-        Optional[UserInDB] -> Returns the user's data in the DB in case the email and password matches
+        Optional[User] -> Returns the user's data in the DB in case the email and password matches
     """
     user_id = users_table.email_in_table(email)
     if not user_id:

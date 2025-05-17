@@ -1,9 +1,8 @@
 from .bq_base import BigQueryTable
 from assistant_agent.database.tables.bigquery import BQUsersTable
-from assistant_agent.schemas import ChatSession, ChatSessionData
+from assistant_agent.schemas import ChatSession
 from assistant_agent.utils.gcp.bigquery import query_data, insert_rows
 from assistant_agent.config import GCPConfig
-import re
 from datetime import datetime, timezone
 from loguru import logger
 
@@ -56,10 +55,9 @@ class BQChatSessionsTable(BigQueryTable):
         next_id = total_user_sessions + 1
 
         # Extracting the user number from the user_id to generate a session_id
-        match = re.search(r"\d+", user_id)
-        user_number = int(match.group(0))
+        user_number = user_id[3:]
 
-        chat_session_id = f"CSID{user_number}-{next_id:03d}"
+        chat_session_id = f"CS{user_number}-{next_id:03d}"
         logger.info(f"Generated chat session ID: {chat_session_id}")
 
         return chat_session_id
@@ -96,21 +94,13 @@ class BQChatSessionsTable(BigQueryTable):
         """
         # _generate_id already has error handlers for the user_id
         logger.info("Generating chat_session_id...")
-        chat_session_id = self._generate_id(session_info.user_id)
-        logger.info(f"{chat_session_id = }")
+        session_info.chat_session_id = self._generate_id(session_info.user_id)
+        logger.info(f"chat_session_id = {session_info.chat_session_id}")
 
         logger.info("Inserting data...")
 
         # Get the current date and time
-        now = datetime.now(timezone.utc)
-        current_time = now.strftime(r"%Y-%m-%d %H:%M:%S")
-
-        # Preparing the columns to fill in the BigQuery table
-        data_to_insert = {
-            "chat_session_id": chat_session_id,
-            "user_id": session_info.user_id,
-            "created_at": current_time,
-        }
+        session_info.created_at = datetime.now(timezone.utc)
 
         try:
             insert_rows(
@@ -118,7 +108,7 @@ class BQChatSessionsTable(BigQueryTable):
                 dataset_name=self.dataset_id,
                 project_id=self.project_id,
                 rows=[
-                    data_to_insert,
+                    session_info.model_dump(),
                 ],
             )
         except Exception as e:
@@ -126,7 +116,7 @@ class BQChatSessionsTable(BigQueryTable):
                 f"Error while inserting chat session's data into BigQuery: {e}"
             )
 
-        return chat_session_id
+        return session_info.chat_session_id
 
     def generate_new_row(self, session_info: ChatSession) -> str:
         """
@@ -140,7 +130,7 @@ class BQChatSessionsTable(BigQueryTable):
         """
         return self._insert_row(session_info)
 
-    def get_user_sessions(self, user_id: str) -> list[ChatSessionData]:
+    def get_user_sessions(self, user_id: str) -> list[ChatSession]:
         """
         Returns all the chat_session_ids of a user_id
 
@@ -167,7 +157,7 @@ class BQChatSessionsTable(BigQueryTable):
         rows_iterator = query_data(query)
 
         chat_sessions_info = [
-            ChatSessionData(
+            ChatSession(
                 user_id=user_id,
                 chat_session_id=row.chat_session_id,
                 created_at=row.created_at,
