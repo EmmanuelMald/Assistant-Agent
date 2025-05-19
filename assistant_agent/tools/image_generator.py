@@ -140,7 +140,8 @@ async def generate_prompts(
 
     Args:
         ideas: list[str] -> List of different ideas to generate prompts from them. An entry of a list is one idea for a prompt
-        general_images_names: list[str] -> List of different names. The lenght of general_images_names and ideas must be the same
+        general_images_names: list[str] -> List of different names. The lenght of general_images_names and ideas must be the same.
+                                            The strings must only contain letters, numbers and underscores, and each name must be different.
 
     Returns:
         list[dict] -> List of dicionaries, the dictionary is a prompt, which keys must contain:
